@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Log Prompt to Insights",
+  "description": "After each prompt, append it to insights.md with a professional version and what was missing. This helps the user improve their AI communication skills for the bootcamp presentation.",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The user just submitted a prompt. After completing their request, append a new entry to `insights.md` following this format:\n\n---\n\n## Prompt N: \"[first 60 chars of prompt]...\"\n\n**Lo que pedí:** [Brief summary of what was asked]\n**Lo que pasó:** [Brief summary of what happened/was executed]\n**Versión profesional:**\n> \"[Rewritten version of the prompt that would be clearer, more structured, and get better results faster]\"\n\n**Lo que me faltó pedir:**\n- [What was missing or could have been specified upfront]\n\n**Flujo diferente:** [If applicable, how the request could have been structured differently for a better workflow]\n\n---\n\nRules:\n- Use the next sequential number after the last entry in insights.md\n- Keep entries concise (5-8 lines max per section)\n- The \"Versión profesional\" should be in Spanish, structured with numbered actions if multi-task\n- Only append, never overwrite existing entries\n- Update the metrics table at the bottom of the file"
+  }
+}
