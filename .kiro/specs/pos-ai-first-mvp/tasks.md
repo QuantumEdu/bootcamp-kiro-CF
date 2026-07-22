@@ -6,23 +6,23 @@ MVP de un sistema POS (Point of Sale) AI-First para el bootcamp Código Facilito
 
 ## Tasks
 
-- [ ] 1. Scaffold Go project with hexagonal structure
+- [x] 1. Scaffold Go project with hexagonal structure
   - [x] 1.1 Run `go mod init github.com/QuantumEdu/bootcamp-kiro-CF`
-  - [ ] 1.2 Create directory structure: `cmd/server/`, `src/domain/entities/`, `src/domain/value_objects/`, `src/domain/ports/`, `src/application/use_cases/`, `src/application/dtos/`, `src/infrastructure/adapters/`, `src/infrastructure/database/`, `src/infrastructure/http/handlers/`, `src/infrastructure/http/middleware/`, `src/infrastructure/config/`
-  - [ ] 1.3 Create `cmd/server/main.go` with basic chi server (health check endpoint)
-  - [ ] 1.4 Create `Makefile` with targets: run, test, lint, fmt, build
-  - [ ] 1.5 Create `.env.example` with all required env vars
-  - [ ] 1.6 Create `.golangci.yml` with configured linters
-  - [ ] 1.7 Install dependencies: chi, go-sqlite3, godotenv, x/crypto, scs
-  - [ ] 1.8 Verify `make run` starts server on :8080 and `make test` passes
-- [ ] 2. Database layer — schema + connection + migrations
-  - [ ] 2.1 Create `migrations/001_init.sql` with full schema (8 tables, indexes, triggers from wayfinder research)
-  - [ ] 2.2 Create `src/infrastructure/database/connection.go` — open SQLite with WAL mode, create RW and RO connections
-  - [ ] 2.3 Create `src/infrastructure/database/migrations.go` — auto-run migrations on startup (embed SQL files)
-  - [ ] 2.4 Create `src/infrastructure/config/config.go` — load env vars (PORT, DATABASE_PATH, OPENROUTER_API_KEY, etc.)
-  - [ ] 2.5 Add session table for `alexedwards/scs` SQLite store
-  - [ ] 2.6 Wire database initialization in `main.go`
-  - [ ] 2.7 Write integration test: database creates tables correctly with in-memory SQLite
+  - [x] 1.2 Create directory structure: `cmd/server/`, `src/domain/entities/`, `src/domain/value_objects/`, `src/domain/ports/`, `src/application/use_cases/`, `src/application/dtos/`, `src/infrastructure/adapters/`, `src/infrastructure/database/`, `src/infrastructure/http/handlers/`, `src/infrastructure/http/middleware/`, `src/infrastructure/config/`
+  - [x] 1.3 Create `cmd/server/main.go` with basic chi server (health check endpoint)
+  - [x] 1.4 Create `Makefile` with targets: run, test, lint, fmt, build
+  - [x] 1.5 Create `.env.example` with all required env vars
+  - [x] 1.6 Create `.golangci.yml` with configured linters
+  - [x] 1.7 Install dependencies: chi, go-sqlite3, godotenv, x/crypto, scs
+  - [x] 1.8 Verify `make run` starts server on :8080 and `make test` passes
+- [x] 2. Database layer — schema + connection + migrations
+  - [x] 2.1 Create `migrations/001_init.sql` with full schema (8 tables, indexes, triggers from wayfinder research)
+  - [x] 2.2 Create `src/infrastructure/database/connection.go` — open SQLite with WAL mode, create RW and RO connections
+  - [x] 2.3 Create `src/infrastructure/database/migrations.go` — auto-run migrations on startup (embed SQL files)
+  - [x] 2.4 Create `src/infrastructure/config/config.go` — load env vars (PORT, DATABASE_PATH, OPENROUTER_API_KEY, etc.)
+  - [x] 2.5 Add session table for `alexedwards/scs` SQLite store
+  - [x] 2.6 Wire database initialization in `main.go`
+  - [x] 2.7 Write integration test: database creates tables correctly with in-memory SQLite
 - [ ] 3. Domain entities and value objects
   - [ ] 3.1 Create `src/domain/entities/product.go` — Product struct with validation (name not empty, price > 0)
   - [ ] 3.2 Create `src/domain/entities/user.go` — User struct with role enum (admin/cajero)
