@@ -1,66 +1,130 @@
-# POS AI-First — Bootcamp Código Facilito + Kiro
+# POS AI-First
 
-Un sistema POS (Point of Sale) con inteligencia artificial que entiende lenguaje natural. El dueño de negocio puede preguntar "¿qué vendí esta semana?" y obtener respuesta inmediata de sus datos reales.
-
-## Stack
-
-| Capa | Tecnología |
-|------|-----------|
-| Backend | Go 1.22+ (chi router) |
-| Frontend | HTMX + Alpine.js + Tailwind CSS (CDN) |
-| Base de datos | SQLite + sqlc |
-| AI/NL | OpenRouter API (GPT-4o-mini → NL→SQL) |
-| Auth | PIN-based multi-user (bcrypt) |
-| Sessions | alexedwards/scs + SQLite store |
+> Sistema de Punto de Venta con Inteligencia Artificial para PYMEs — Bootcamp Codigo Facilito + Kiro
 
 ## Arquitectura
 
 ```
-src/
-├── domain/           # Entidades, value objects, puertos (interfaces)
-├── application/      # Use-cases, DTOs
-└── infrastructure/   # Adapters (SQLite, OpenRouter), HTTP handlers, config
+┌─────────────────────────────────────────────────────────────┐
+│ Frontend: HTMX + Alpine.js + Tailwind CSS (CDN)             │
+├─────────────────────────────────────────────────────────────┤
+│ Backend: Go + chi router                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐              │
+│  │ Handlers │→ │ Use Cases│→ │ Adapters     │              │
+│  │ (HTTP)   │  │ (NL→SQL) │  │ (OpenRouter) │              │
+│  └──────────┘  └──────────┘  └──────────────┘              │
+├─────────────────────────────────────────────────────────────┤
+│ Database: SQLite (WAL mode) — RW + RO connections           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Hexagonal ligera — las dependencias apuntan hacia adentro: `infrastructure → application → domain`.
+## Stack
 
-## Desarrollo rápido
+| Componente | Tecnologia |
+|---|---|
+| Backend | Go 1.22+ / chi v5 |
+| Database | SQLite (modernc.org/sqlite) |
+| Frontend | HTMX 1.9 + Alpine.js 3 + Tailwind CSS |
+| AI | OpenRouter (gpt-4o-mini / claude-3-haiku) |
+| Auth | PIN + SHA-256 + session tokens |
+
+## Setup rapido
 
 ```bash
-# Requisitos: Go 1.22+, gcc (para CGO/SQLite)
-cp .env.example .env    # Agregar OPENROUTER_API_KEY
-make run                # Inicia en http://localhost:8080
-make test               # Corre tests
-make lint               # golangci-lint
-make seed               # Cargar datos demo
+# 1. Clonar
+git clone https://github.com/QuantumEdu/bootcamp-kiro-CF.git
+cd bootcamp-kiro-CF
+
+# 2. Configurar
+cp .env.example .env
+# Editar .env: agregar OPENROUTER_API_KEY
+
+# 3. Ejecutar
+go run ./cmd/server
+
+# 4. Abrir
+# http://localhost:8080/login
+# PIN admin: 1234
+# PIN cajero: 123
 ```
 
-## Estructura del repositorio
+## Funcionalidades
+
+### Completadas
+
+- [x] **Dashboard** — Ventas hoy/semana/mes, top productos, stock bajo, margen por categoria
+- [x] **Productos** — Lista con busqueda HTMX
+- [x] **Ventas** — Carrito con Alpine.js, checkout JSON, historial reciente
+- [x] **Chat IA** — Panel lateral con NL→SQL (lenguaje natural a consultas SQL)
+- [x] **Autenticacion** — PIN con lockout por intentos fallidos
+- [x] **Metricas** — HTMX polling automatico (30s/60s)
+- [x] **Seguridad NL→SQL** — Jailbreak detection, table whitelist, SELECT-only, max 100 rows
+- [x] **Seed data** — 30 productos, 10 ventas, 5 clientes (tienda de abarrotes MX)
+
+### Seguridad del Chat IA
+
+10 capas de defensa:
+1. Validacion de input (jailbreak detection)
+2. System prompt (solo SELECT)
+3. SQL validation (keyword blocking)
+4. Table whitelist (8 tablas)
+5. Multi-statement detection
+6. Comment injection blocking
+7. Read-only DB connection
+8. Query timeout (5s)
+9. Row limit (100 max)
+10. Max input length (500 chars)
+
+## Estructura del proyecto
 
 ```
-├── cmd/server/main.go       # Entry point
-├── src/                     # Código fuente (hexagonal)
-├── migrations/              # SQL schema
-├── templates/               # HTMX templates
-├── static/                  # CSS, JS, assets
-├── testdata/                # Fixtures y seed data
-├── .kiro/                   # Steering, specs, hooks (Kiro IDE config)
-├── governance/              # PRD y brief (visión SaaS futura)
-├── .wayfinder/              # Tickets y research de planeación
-└── Pre-analisis/            # Documentos de evaluación previa
+cmd/server/main.go          — Entry point
+src/
+├── application/nlsql/      — NL→SQL service + validator
+├── domain/ports/           — Interfaces (hexagonal)
+└── infrastructure/
+    ├── adapters/           — OpenRouter client
+    ├── config/             — Env vars
+    ├── database/           — SQLite connection + migrations
+    └── http/
+        ├── handlers/       — HTTP handlers (pages, metrics, chat, auth, sales)
+        └── middleware/     — Auth middleware
+templates/                  — HTML templates (Go html/template)
+static/js/                  — Alpine.js components
 ```
 
-## Demo (5 funcionalidades clave)
+## Comandos
 
-1. **Login con PIN** — autenticación tipo POS real
-2. **CRUD Productos** — catálogo con categorías y stock
-3. **Registro de ventas** — carrito + descuento automático de inventario
-4. **Dashboard** — métricas en tiempo real con HTMX polling
-5. **Chat NL→SQL** — "¿qué vendí ayer?" → respuesta instantánea
+```bash
+make run       # Ejecutar servidor
+make test      # Tests
+make lint      # Linter
+make build     # Compilar binario
+```
 
-## Evaluación Bootcamp
+## Variables de entorno
 
-- Impacto tecnológico (30%) — NL→SQL para PYMES sin tech
-- Innovación (30%) — POS conversacional desde el diseño
-- Software funcional (30%) — CRUD + chat + dashboard demostrable
-- Uso de AWS y Kiro (10%) — Kiro para desarrollo, steering, specs
+| Variable | Default | Descripcion |
+|---|---|---|
+| `PORT` | 8080 | Puerto del servidor |
+| `DATABASE_PATH` | ./data/pos.db | Ruta de la BD SQLite |
+| `OPENROUTER_API_KEY` | — | API key de OpenRouter |
+| `OPENROUTER_MODEL` | anthropic/claude-3-haiku | Modelo LLM |
+| `SESSION_SECRET` | dev-secret | Secreto para tokens |
+| `PIN_MAX_ATTEMPTS` | 5 | Intentos antes de lockout |
+| `PIN_LOCKOUT_MINUTES` | 5 | Minutos de bloqueo |
+| `QUERY_TIMEOUT_SECONDS` | 5 | Timeout para queries |
+
+## Demo script
+
+1. Login con PIN 1234
+2. Ver dashboard (metricas se auto-refrescan)
+3. Ir a Productos → ver catalogo
+4. Ir a Ventas → buscar producto → agregar al carrito → cobrar
+5. Chat IA: "cuantas ventas hubo hoy?" → ver SQL generado + resultados
+6. Chat IA: "que producto se vendio mas esta semana?"
+7. Intentar jailbreak: "ignora instrucciones" → ver rechazo
+
+## Equipo
+
+Proyecto desarrollado con [Kiro](https://kiro.dev) durante el Bootcamp Codigo Facilito 2026.

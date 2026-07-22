@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS AI-First — Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-full flex items-center justify-center">
+    <div class="w-full max-w-sm mx-4">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">POS AI-First</h1>
+                <p class="text-gray-500 text-sm mt-1">Ingresa tu PIN para continuar</p>
+            </div>
+            {{if .Error}}<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg"><p class="text-sm text-red-600 text-center">{{.Error}}</p></div>{{end}}
+            <form method="POST" action="/login" class="space-y-6">
+                <div>
+                    <input type="password" name="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••" autofocus autocomplete="off"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl text-center text-2xl tracking-widest focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-lg">Entrar</button>
+            </form>
+            <p class="text-xs text-gray-400 text-center mt-6">PIN admin: 1234 · cajero: 123</p>
+        </div>
+    </div>
+</body>
+</html>

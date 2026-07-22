@@ -13,6 +13,7 @@ import (
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/config"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/database"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/handlers"
+	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
@@ -44,6 +45,9 @@ func main() {
 	pageHandler := handlers.NewPageHandler(tmpl)
 	chatHandler := handlers.NewChatHandler(nlsqlService, tmpl)
 	metricsHandler := handlers.NewMetricsHandler(db.RW)
+	saleHandler := handlers.NewSaleHandler(db.RW)
+	authMW := mw.NewAuthMiddleware(cfg.SessionSecret, cfg.PINMaxAttempts, cfg.PINLockoutMinutes)
+	authHandler := handlers.NewAuthHandler(authMW, tmpl)
 
 	// Router
 	r := chi.NewRouter()
@@ -61,28 +65,41 @@ func main() {
 		fmt.Fprintf(w, `{"status":"ok","port":%q}`, cfg.Port)
 	})
 
-	// Pages
-	r.Get("/", pageHandler.Dashboard)
-	r.Get("/productos", pageHandler.Products)
-	r.Get("/ventas", pageHandler.Sales)
-	r.Get("/metricas", pageHandler.Metrics)
+	// Public routes
+	r.Get("/login", authHandler.LoginPage)
+	r.Post("/login", authHandler.Login)
 
-	// API: Metrics (HTMX fragments)
-	r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
-	r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
-	r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
-	r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
-	r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
-	r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
-	r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
+	// Protected routes
+	r.Group(func(r chi.Router) {
+		r.Use(authMW.RequireAuth)
 
-	// API: Products and sales (HTMX fragments)
-	r.Get("/api/productos", metricsHandler.ProductosHTMX)
-	r.Get("/api/productos/buscar", metricsHandler.ProductosBuscar)
-	r.Get("/api/ventas/recientes", metricsHandler.VentasRecientes)
+		// Pages
+		r.Get("/", pageHandler.Dashboard)
+		r.Get("/productos", pageHandler.Products)
+		r.Get("/ventas", pageHandler.Sales)
+		r.Get("/metricas", pageHandler.Metrics)
+		r.Get("/logout", authHandler.Logout)
 
-	// API: Chat NL→SQL
-	r.Post("/api/chat", chatHandler.HandleChat)
+		// API: Sales
+		r.Post("/api/ventas", saleHandler.Create)
+		r.Get("/api/ventas/recientes", saleHandler.Recent)
+
+		// API: Metrics (HTMX fragments)
+		r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
+		r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
+		r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
+		r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
+		r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
+		r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
+		r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
+
+		// API: Products
+		r.Get("/api/productos", metricsHandler.ProductosHTMX)
+		r.Get("/api/productos/buscar", metricsHandler.ProductosBuscar)
+
+		// API: Chat NL→SQL
+		r.Post("/api/chat", chatHandler.HandleChat)
+	})
 
 	// Start
 	addr := ":" + cfg.Port
