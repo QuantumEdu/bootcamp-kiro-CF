@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sqlite-pos": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "./data/pos.db"],
+      "disabled": true
+    }
+  }
+}

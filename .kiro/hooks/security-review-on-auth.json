@@ -1,0 +1,13 @@
+{
+  "name": "Security Review on Auth Changes",
+  "version": "1.0.0",
+  "description": "Review security when authentication or authorization files change",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["**/auth*.go", "**/middleware*.go", "**/session*.go", "**/pin*.go"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The auth/security file was modified. Review for: 1) PIN bypass potential, 2) Session fixation or hijack, 3) Missing rate limiting checks, 4) Hardcoded secrets or test PINs left in code. If issues found, report with severity CRITICAL/HIGH/MEDIUM and suggested fix."
+  }
+}

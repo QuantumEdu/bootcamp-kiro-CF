@@ -1,0 +1,13 @@
+{
+  "name": "NL→SQL Security Gate",
+  "version": "1.0.0",
+  "description": "When NL-SQL or query files change, verify security layers are intact",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["**/openrouter*.go", "**/query*.go", "**/nl_sql*.go", "**/sql_query*.go", "**/chat*.go"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The NL→SQL layer was modified. Verify: 1) Generated SQL is validated as SELECT-only before execution, 2) Read-only connection is used for user queries, 3) LIMIT and timeout are enforced, 4) No raw user input reaches SQL execution without validation, 5) Query logging is present for audit. Report any missing security layer as CRITICAL."
+  }
+}

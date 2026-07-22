@@ -1,0 +1,13 @@
+{
+  "name": "Go Lint on Save",
+  "version": "1.0.0",
+  "description": "Run golangci-lint when a Go file is saved",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["*.go"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "golangci-lint run --fast ./... 2>&1 | head -30"
+  }
+}

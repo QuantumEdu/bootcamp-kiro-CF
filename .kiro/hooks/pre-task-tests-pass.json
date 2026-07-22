@@ -1,0 +1,12 @@
+{
+  "name": "Tests Must Pass Before Task",
+  "version": "1.0.0",
+  "description": "Ensure existing tests pass before starting a new spec task",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "go test ./... -short 2>&1 && echo PASS || echo FAIL"
+  }
+}
