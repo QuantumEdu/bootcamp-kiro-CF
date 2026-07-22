@@ -1,0 +1,31 @@
+{{define "content"}}
+<div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/ventas-hoy" hx-trigger="load, every 30s" hx-swap="innerHTML">
+            <div class="animate-pulse"><div class="h-4 bg-gray-200 rounded w-20 mb-3"></div><div class="h-8 bg-gray-200 rounded w-32"></div></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/ventas-semana" hx-trigger="load, every 60s" hx-swap="innerHTML">
+            <div class="animate-pulse"><div class="h-4 bg-gray-200 rounded w-24 mb-3"></div><div class="h-8 bg-gray-200 rounded w-32"></div></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/ventas-mes" hx-trigger="load, every 60s" hx-swap="innerHTML">
+            <div class="animate-pulse"><div class="h-4 bg-gray-200 rounded w-20 mb-3"></div><div class="h-8 bg-gray-200 rounded w-32"></div></div>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/top-productos" hx-trigger="load, every 60s" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-3"><div class="h-4 bg-gray-200 rounded w-36"></div><div class="h-3 bg-gray-200 rounded w-full"></div><div class="h-3 bg-gray-200 rounded w-4/5"></div></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/stock-bajo" hx-trigger="load, every 120s" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-3"><div class="h-4 bg-gray-200 rounded w-28"></div><div class="h-3 bg-gray-200 rounded w-full"></div><div class="h-3 bg-gray-200 rounded w-4/5"></div></div>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/clientes-frecuentes" hx-trigger="load, every 120s" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-3"><div class="h-4 bg-gray-200 rounded w-36"></div><div class="h-3 bg-gray-200 rounded w-full"></div></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" hx-get="/api/metrics/margen-categoria" hx-trigger="load, every 120s" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-3"><div class="h-4 bg-gray-200 rounded w-36"></div><div class="h-3 bg-gray-200 rounded w-full"></div></div>
+        </div>
+    </div>
+</div>
+{{end}}

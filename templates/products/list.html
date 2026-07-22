@@ -1,0 +1,22 @@
+{{define "content"}}
+<div class="space-y-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-800">Productos</h2>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Producto</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">SKU</th>
+                    <th class="px-4 py-3 text-right font-medium text-gray-600">Precio</th>
+                    <th class="px-4 py-3 text-right font-medium text-gray-600">Stock</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100" hx-get="/api/productos" hx-trigger="load" hx-swap="innerHTML">
+                <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Cargando...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}

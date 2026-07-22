@@ -1,0 +1,16 @@
+{{define "chat_message"}}
+<div class="flex gap-2 justify-end">
+    <div class="bg-indigo-600 text-white rounded-lg px-3 py-2 text-sm max-w-[280px]">{{.Query}}</div>
+</div>
+<div class="flex gap-2">
+    <div class="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+    </div>
+    <div class="bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 max-w-[280px]">
+        {{if .Error}}<p class="text-red-600">{{.Error}}</p>{{else}}
+        <p class="mb-1">{{.Explanation}}</p>
+        {{if .Columns}}<div class="mt-2 overflow-x-auto"><table class="text-xs w-full"><thead><tr class="border-b border-gray-300">{{range .Columns}}<th class="px-1 py-0.5 text-left font-medium">{{.}}</th>{{end}}</tr></thead><tbody>{{range .Results}}<tr class="border-b border-gray-200">{{range .}}<td class="px-1 py-0.5">{{.}}</td>{{end}}</tr>{{end}}</tbody></table></div>{{end}}
+        {{end}}
+    </div>
+</div>
+{{end}}
