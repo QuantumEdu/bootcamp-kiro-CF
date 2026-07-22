@@ -5,79 +5,93 @@
 - **Name**: pos-ai-first
 - **Description**: POS AI-First — Punto de venta con agente conversacional que entiende lenguaje natural
 - **Bootcamp**: Código Facilito + Kiro (5-day timeline)
-- **Status**: Pre-implementation (planning phase complete, scaffolding pending)
-- **Repo root**: `d:\02-A\code\bootcamp\`
+- **Status**: Scaffolded — structure created, implementation pending
+- **Repo**: `https://github.com/QuantumEdu/bootcamp-kiro-CF`
 
-## Detected Stack
+## Stack
 
 | Layer | Technology | Status |
 |-------|-----------|--------|
-| Backend | Go (net/http or chi) | Planned |
-| Frontend | HTMX + Alpine.js | Planned |
-| Styling | Tailwind CSS | Planned |
-| Database | SQLite + sqlc | Planned |
-| AI/NL | OpenRouter API (NL→SQL) | Planned |
-| Auth | PIN-based multi-user | Planned |
+| Backend | Go 1.22+ (chi router) | Ready |
+| Frontend | HTMX + Alpine.js | Ready |
+| Styling | Tailwind CSS (CDN) | Ready |
+| Database | SQLite + sqlc | Ready |
+| AI/NL | OpenRouter API (NL→SQL) | Ready |
+| Auth | PIN-based (bcrypt + scs sessions) | Ready |
 
-## Architecture (from .wayfinder/map.md)
+## Architecture
 
 ```
-User → HTMX UI → Go handlers → SQLite (products, sales, inventory)
-                              → OpenRouter API (NL→SQL→response)
+cmd/server/main.go → DI wiring → chi router
+                                      ↓
+src/infrastructure/http/handlers/ → use-cases → domain (ports)
+                                      ↓
+src/infrastructure/adapters/ → SQLite (sqlc) + OpenRouter API
 ```
 
 Layout: split view — top: traditional app (CRUD + dashboard), bottom: always-visible chat bar.
 
-## Governance Source
+## Directory Structure
 
-- **Primary**: `governance/PRD.md` — full SaaS PRD (Next.js + Supabase version for production)
-- **Bootcamp scope**: `.wayfinder/map.md` — Go + HTMX + SQLite MVP for 5-day demo
-- **Evaluation**: Impacto tecnológico (30%) + Innovación (30%) + Software funcional (30%) + Uso AWS/Kiro (10%)
+```
+pos-ai-first/
+├── cmd/server/main.go          # Entry point
+├── src/
+│   ├── domain/
+│   │   ├── entities/           # Product, Sale, User, Inventory
+│   │   ├── value_objects/      # PIN, Money, ValidatedQuery
+│   │   └── ports/              # Repository interfaces, AIQueryService
+│   ├── application/
+│   │   ├── use_cases/          # CreateProduct, RegisterSale, ProcessNaturalQuery...
+│   │   └── dtos/               # Transfer objects between layers
+│   └── infrastructure/
+│       ├── adapters/           # SQLite repos, OpenRouter adapter
+│       ├── database/           # Connection, migrations
+│       ├── http/handlers/      # HTTP handlers (thin)
+│       ├── http/middleware/    # Auth, logging
+│       └── config/             # Env vars
+├── migrations/001_init.sql     # SQLite schema (8 tables)
+├── templates/                  # HTMX templates
+├── static/                     # Tailwind CDN, Alpine.js, minimal JS
+├── testdata/                   # Seed and fixtures
+├── .kiro/                      # Kiro config (steering, specs, hooks)
+├── Makefile                    # run, test, lint, build, seed
+├── .golangci.yml               # Linter config
+└── .env.example                # Environment template
+```
 
-## Persistence
+## Kiro Spec
 
-- **Mode**: engram
-- **Artifact store**: engram (no openspec/ directory)
-- **Skill registry**: `.atl/skill-registry.md`
+- **Location**: `.kiro/specs/pos-ai-first-mvp/`
+- **Requirements**: 7 functional + 4 non-functional
+- **Design**: hexagonal architecture, NL→SQL flow, security layers
+- **Tasks**: 18 tasks across 5 days (Run All Tasks compatible)
 
-## Strict TDD
+## Governance
 
-- **Status**: false
-- **Reason**: No test runner available — project not yet scaffolded
-- **Plan**: Activate `strict_tdd: true` when `go mod init` is executed and test runner is available (`go test ./...`)
+- `governance/PRD.md` — Full SaaS PRD (Next.js + Supabase for PRODUCTION, not bootcamp)
+- `governance/project-brief.yaml` — Business context and vision
+- **IMPORTANT**: Governance describes the FUTURE SaaS product. The bootcamp demo uses Go+SQLite stack.
 
-## Key Decisions
+## Wayfinder
 
-1. **Bootcamp demo uses Go stack** (wayfinder) not Next.js+Supabase (governance PRD)
-2. **NL→SQL is dynamic from MVP** using OpenRouter
-3. **SQLite** for simplicity in 5-day timeline
-4. **HTMX** for minimal JavaScript with server-driven UI
-5. **PIN auth** inspired by POS_Tilapia_Go prior project
+- `.wayfinder/map.md` — Project map with 6 tickets
+- `.wayfinder/research/` — Completed research (schema, NL→SQL, dashboard)
+- `.wayfinder/tickets/` — 6 implementation tickets
 
-## Unresolved (from .wayfinder/map.md)
+## Testing
 
-- Security for NL→SQL (prevent destructive queries)
-- Testing strategy (unit with sqlc mocks? integration with SQLite in-memory?)
-- API design (HTMX direct or REST intermediate layer?)
-- Exact project structure
-- Dashboard KPIs
-- CI/CD post-MVP
-
-## Relevant Skills for This Project
-
-| Skill | Relevance |
-|-------|-----------|
-| `go-testing` | Go test patterns when scaffolded |
-| `grilling` | Stress-test designs before building |
-| `implement` | Implementation based on PRD/tickets |
-| `to-issues` | Break wayfinder tickets into GitHub issues |
-| `codebase-design` | Deep module design |
-| `diagnosing-bugs` | Debug during implementation |
-| `work-unit-commits` | Reviewable commit units |
-| `context7-mcp` | Library/framework reference lookups |
+- **Strict TDD**: enabled for auth, inventory, finance, NL→SQL security
+- **Runner**: `go test ./...`
+- **Coverage**: `go test -cover ./...`
+- **Linter**: `golangci-lint run`
+- **Formatter**: `gofmt -w .`
 
 ## Next Steps
 
-1. `/sdd-explore` or `/sdd-new` to start implementing ticket 002 (project setup)
-2. Scaffold Go project with `go mod init`
-3. Once test runner exists, re-run `/sdd-init` to activate Strict TDD
+1. Execute Kiro Spec tasks (Run All Tasks in app.kiro.dev)
+2. Day 1: Tasks 1-4 (scaffold, DB, entities, seed)
+3. Day 2: Tasks 5-8 (ports, OpenRouter adapter, NL→SQL)
+4. Day 3: Tasks 9-12 (auth, CRUD, UI, sales)
+5. Day 4: Tasks 13-15 (dashboard, chat, router)
+6. Day 5: Tasks 16-18 (polish, demo, testing)

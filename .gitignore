@@ -2,24 +2,43 @@
 .env
 .env.local
 
-# Build
+# Build output
 bin/
-tmp/
+
+# Database (runtime)
+data/*.db
+data/*.db-wal
+data/*.db-shm
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE (except kiro steering which is shared)
+# IDE
 .vscode/
 .idea/
 
-# Dependencies (when Go project exists)
+# Go
 vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# Database
-*.db
-data/
+# Test binary
+*.test
+
+# Coverage
+*.out
+coverage.html
+
+# Kiro sessions (personal)
+.kiro/sessions/
 
 # ATL cache (local only)
 .atl/.skill-registry.cache.json
+
+# Temporary
+tmp/
+*.tmp
