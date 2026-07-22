@@ -1,0 +1,60 @@
+{{define "content"}}
+<div class="space-y-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-800">Productos</h2>
+        <button hx-get="/productos/nuevo" hx-target="#main-content"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+            + Nuevo Producto
+        </button>
+    </div>
+
+    <!-- Search -->
+    <div class="flex gap-3">
+        <input type="search" name="q" placeholder="Buscar producto..."
+               hx-get="/productos" hx-target="#products-table" hx-trigger="keyup changed delay:300ms"
+               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Producto</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">SKU</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Categoria</th>
+                    <th class="px-4 py-3 text-right font-medium text-gray-600">Precio</th>
+                    <th class="px-4 py-3 text-right font-medium text-gray-600">Stock</th>
+                    <th class="px-4 py-3 text-center font-medium text-gray-600">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="products-table" class="divide-y divide-gray-100">
+                {{range .Products}}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{.Nombre}}</td>
+                    <td class="px-4 py-3 text-gray-500">{{.SKU}}</td>
+                    <td class="px-4 py-3 text-gray-500">{{.CategoriaNombre}}</td>
+                    <td class="px-4 py-3 text-right text-gray-900">${{printf "%.2f" .PrecioVenta}}</td>
+                    <td class="px-4 py-3 text-right">
+                        {{if le .StockActual .StockMinimo}}
+                        <span class="text-red-600 font-medium">{{printf "%.0f" .StockActual}}</span>
+                        {{else}}
+                        <span class="text-gray-900">{{printf "%.0f" .StockActual}}</span>
+                        {{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <button hx-get="/productos/{{.ID}}/editar" hx-target="#main-content"
+                                class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Editar</button>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-400">No hay productos registrados</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
