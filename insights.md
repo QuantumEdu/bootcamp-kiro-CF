@@ -110,6 +110,37 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 
 ---
 
+## Prompt 7: "realice la instruccion del paso 2"
+
+**Lo que pedí:** Confirmé que ya ejecuté `gh auth refresh -s project,read:project`.  
+**Lo que pasó:** El agente verificó los scopes, creó el Project Board V2, configuró columnas (Backlog/In Progress/Review/Done), campos custom (Day, Priority, Estimation), y vinculó las 20 issues.  
+**Versión profesional:**
+> "Listo, ejecuté `gh auth refresh` y el token ya tiene scope `project`. Procede con la creación del Project Board V2 y la vinculación de todas las issues."
+
+**Lo que me faltó pedir:**
+- Nada crítico — fue una confirmación necesaria para desbloquear la tarea. Flujo correcto.
+
+---
+
+## Prompt 8: "1. Tenemos archivo de presentacion, de video y de insights, actualizalo..."
+
+**Lo que pedí:** Dos cosas:
+1. Actualizar los tres archivos con el progreso actual
+2. Crear un hook para auto-registrar prompts en insights.md
+
+**Versión profesional:**
+> "Dos acciones:
+> 1. **Actualizar archivos:** Agrega a `presentacion.md` una diapositiva sobre GitHub Projects. Actualiza `video.md` con la sección de project management. Añade los prompts 7 y 8 a `insights.md` y actualiza las métricas.
+> 2. **Hook:** Crea un hook `promptSubmit` que después de cada prompt añada automáticamente una entrada a `insights.md` con: el prompt original, versión profesional, y qué faltó. Formato consistente con las entradas existentes."
+
+**Lo que me faltó pedir:**
+- Especificar QUÉ actualización quería en presentacion.md y video.md (agregar slides? actualizar contenido existente?)
+- Indicar si el hook debería ejecutarse antes o después de completar la tarea
+
+**Flujo diferente:** Separar "crear hook" (setup) de "actualizar archivos" (contenido) en dos prompts sería más limpio, pero unirlos está bien si se numeran.
+
+---
+
 ## Patrones observados y recomendaciones
 
 ### ✅ Lo que funcionó bien
@@ -149,11 +180,14 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 
 | Métrica | Valor |
 |---------|-------|
-| Total de prompts del usuario | 6 |
-| Prompts de confirmación/aprobación | 2 (33%) |
-| Prompts multi-acción | 2 |
+| Total de prompts del usuario | 8 |
+| Prompts de confirmación/aprobación | 3 (37%) |
+| Prompts multi-acción | 3 |
 | Errores encontrados por permisos | 1 (GitHub Projects scope) |
-| Archivos creados | 4 (tasks reformateado, presentacion.md, video.md, insights.md) |
+| Archivos creados | 5 (tasks reformateado, presentacion.md, video.md, insights.md, hook) |
 | Issues creadas | 20 |
 | PRs creados | 1 |
-| Commits realizados | 3 |
+| Commits realizados | 4 |
+| GitHub Project Board | ✅ Configurado con 4 columnas + 3 campos custom |
+| LTM checkpoint | ✅ Guardado con 5 decisiones |
+| Hooks activos | 1 (prompt-insights-log) |

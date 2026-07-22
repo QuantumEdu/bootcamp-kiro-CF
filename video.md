@@ -52,9 +52,11 @@
 >
 > "Segundo, configuré Kiro con Steering files — reglas de arquitectura, testing, seguridad, calidad y convenciones que se aplican automáticamente en cada sesión."
 >
-> "Tercero, usé el spec workflow: requirements, design, tasks. 18 tareas con dependencias, convertidas automáticamente en GitHub Issues."
+> "Tercero, usé el spec workflow: requirements, design, tasks. 20 tareas con dependencias, convertidas automáticamente en GitHub Issues y vinculadas a un Project Board Kanban."
 >
 > "Y cuarto, el Power de Long-Term Memory — memoria local que persiste entre sesiones. Cierro Kiro hoy, vuelvo mañana, y recuerda todo: qué hice, qué decisiones tomé, qué queda pendiente."
+>
+> "Bonus: un hook que documenta automáticamente cada prompt que envío y cómo debería haberlo pedido de forma más profesional. Meta-aprendizaje en tiempo real."
 
 **Notas de producción:** Mostrar brevemente cada cosa mientras se menciona. Speed up en la navegación de archivos. Highlight en el steering y el LTM.
 
@@ -107,7 +109,7 @@
 **Visual:** Resumen de métricas + roadmap + pantalla final.
 
 **Narración:**
-> "En 5 días: 18 tareas, arquitectura limpia, tests en dominio al 90%, zero lint warnings, y un chat AI funcional con respuestas en español."
+> "En 5 días: 20 tareas, arquitectura limpia, tests en dominio al 90%, zero lint warnings, un chat AI funcional con respuestas en español, y un Project Board que se mantiene solo."
 >
 > "Próximos pasos: migrar a AWS, agregar historial de conversación, y soporte multi-sucursal."
 >

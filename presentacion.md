@@ -118,11 +118,14 @@
 **Descripción:**
 - Kiro Sync Files: workspace local ↔ Kiro cloud (app.dev)
 - GitHub: issues, milestones, labels, projects para tracking
-- 18 issues creadas automáticamente desde tasks.md
+- 20 issues creadas automáticamente desde tasks.md
 - Milestone "POS AI-First MVP" con dependency tracking
+- GitHub Project Board V2 con Kanban (Backlog/In Progress/Review/Done)
+- Campos custom: Day, Priority, Estimation
+- Hook automático que registra cada prompt y su versión mejorada
 
-**Comentarios para el presentador:** "Las tareas del spec se convirtieron directamente en issues de GitHub con un comando. Cero trabajo manual de project management."  
-**Propuesta de diseño:** Split screen: Kiro IDE a la izquierda, GitHub Issues/Project board a la derecha.
+**Comentarios para el presentador:** "Las tareas del spec se convirtieron directamente en issues de GitHub con un comando. El Project Board da visibilidad del progreso sin esfuerzo manual. Y el hook de insights documenta automáticamente mi proceso de comunicación con el agente."  
+**Propuesta de diseño:** Split screen: Kiro IDE a la izquierda, GitHub Project Board Kanban a la derecha. Overlay mostrando el flujo: spec → issues → board.
 
 ---
 
@@ -183,15 +186,18 @@
 
 **Título:** Lo que logramos en 5 días  
 **Descripción:**
-- 18 tareas completadas
-- ~108 sub-tareas implementadas
+- 20 tareas planificadas con dependency graph
+- ~118 sub-tareas detalladas
 - 5 capas de seguridad NL→SQL
 - Arquitectura hexagonal limpia
 - Tests en dominio ≥90%
 - Zero lint warnings
 - Chat AI funcional con respuestas en español
+- GitHub Project Board con Kanban automatizado
+- Hook de auto-documentación de prompts
+- LTM Power para persistencia entre sesiones
 
-**Comentarios para el presentador:** Números concretos. Mostrar la barra de progreso del milestone.  
+**Comentarios para el presentador:** Números concretos. Mostrar la barra de progreso del milestone y el Project Board.  
 **Propuesta de diseño:** Grid de métricas con iconos y números grandes. Estilo dashboard.
 
 ---
