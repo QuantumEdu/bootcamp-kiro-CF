@@ -131,6 +131,18 @@ MVP de un sistema POS (Point of Sale) AI-First para el bootcamp Código Facilito
   - [ ] 18.4 Test auth: wrong PIN, lockout, expired session
   - [ ] 18.5 Test concurrent access: multiple browser tabs
   - [ ] 18.6 Final commit with clean git history
+- [ ] 19. Presentation and video preparation
+  - [ ] 19.1 Complete `presentacion.md` with final metrics, screenshots, and demo captures
+  - [ ] 19.2 Complete `video.md` script with final narration text and timing
+  - [ ] 19.3 Record 5-minute demo video following the script
+  - [ ] 19.4 Export video in 1080p and upload backup to Google Drive
+  - [ ] 19.5 Test presentation flow end-to-end (slide transitions, timing)
+- [ ] 20. GitHub Projects and documentation setup
+  - [ ] 20.1 Create GitHub Project board with columns: Backlog, In Progress, Review, Done
+  - [ ] 20.2 Link all 18 task issues to the project board
+  - [ ] 20.3 Add custom fields: Day, Priority, Estimation
+  - [ ] 20.4 Update README.md with project board link, architecture diagram, and setup instructions
+  - [ ] 20.5 Final documentation review: verify all links, badges, and references are correct
 
 ## Task Dependency Graph
 
@@ -186,6 +198,11 @@ MVP de un sistema POS (Point of Sale) AI-First para el bootcamp Código Facilito
       "wave": 10,
       "tasks": [18],
       "description": "Final testing and edge cases (depends on tasks 15, 17)"
+    },
+    {
+      "wave": 11,
+      "tasks": [19, 20],
+      "description": "Presentation, video, and project board (depend on tasks 17, 18)"
     }
   ]
 }
@@ -201,4 +218,4 @@ The tasks are organized across a 5-day bootcamp schedule:
 - **Day 2 — AI Core + Security** (Tasks 5–8): Domain ports, OpenRouter adapter, SQL validation, NL→SQL use-case
 - **Day 3 — Authentication + Product CRUD + UI Shell** (Tasks 9–12): Auth, product management, templates, sales
 - **Day 4 — Dashboard + Chat Integration** (Tasks 13–15): Metrics, chat UI, router wiring
-- **Day 5 — Polish + Demo Prep** (Tasks 16–18): UI polish, demo preparation, final testing
+- **Day 5 — Polish + Demo Prep** (Tasks 16–20): UI polish, demo preparation, final testing, presentation, project board
