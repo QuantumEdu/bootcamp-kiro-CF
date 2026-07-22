@@ -1,0 +1,25 @@
+# Environment
+.env
+.env.local
+
+# Build
+bin/
+tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (except kiro steering which is shared)
+.vscode/
+.idea/
+
+# Dependencies (when Go project exists)
+vendor/
+
+# Database
+*.db
+data/
+
+# ATL cache (local only)
+.atl/.skill-registry.cache.json
