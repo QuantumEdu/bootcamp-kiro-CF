@@ -35,7 +35,16 @@ func (h *ChatHandler) HandleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := h.chatService.ProcessQuery(r.Context(), query)
+	// Get client IP for audit logging
+	clientIP := r.Header.Get("X-Forwarded-For")
+	if clientIP == "" {
+		clientIP = r.Header.Get("X-Real-IP")
+	}
+	if clientIP == "" {
+		clientIP = r.RemoteAddr
+	}
+
+	result := h.chatService.ProcessQuery(r.Context(), query, clientIP)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 

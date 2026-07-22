@@ -7,14 +7,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/config"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/database"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/handlers"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 
 	usecases "github.com/QuantumEdu/bootcamp-kiro-CF/src/application/use_cases"
 )
@@ -47,11 +49,18 @@ func main() {
 		log.Fatalf("Failed to load templates: %v", err)
 	}
 
+	// --- Security: Audit Logger ---
+	auditLogger := middleware.NewAuditLogger(db)
+
+	// --- Security: Rate Limiter ---
+	// 20 requests per minute for chat/SQL endpoints
+	chatRateLimiter := middleware.NewRateLimiter(20, 1*time.Minute)
+
 	// --- Services ---
 	openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
 
 	schema := getSchema()
-	chatService := usecases.NewChatService(openRouter, readDB, schema, cfg.QueryTimeoutSecs)
+	chatService := usecases.NewChatService(openRouter, readDB, schema, cfg.QueryTimeoutSecs, auditLogger)
 
 	// --- Handlers ---
 	pageHandler := handlers.NewPageHandler(tmpl)
@@ -61,10 +70,10 @@ func main() {
 	// --- Router ---
 	r := chi.NewRouter()
 
-	// Middleware
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Compress(5))
+	// Global Middleware
+	r.Use(chimw.Logger)
+	r.Use(chimw.Recoverer)
+	r.Use(chimw.Compress(5))
 
 	// Static files
 	fileServer := http.FileServer(http.Dir("static"))
@@ -81,17 +90,27 @@ func main() {
 	r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
 	r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
 	r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
+	r.Get("/api/metrics/ventas-sparkline", metricsHandler.VentasSparkline)
 	r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
 	r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
 	r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
 	r.Get("/api/metrics/ingresos", metricsHandler.Ingresos)
+	r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
+	r.Get("/api/metrics/sin-rotacion", metricsHandler.ProductosSinRotacion)
 
-	// API: Chat (NL -> SQL)
-	r.Post("/api/chat", chatHandler.HandleChat)
+	// API: SQL Libre (rate limited)
+	r.With(chatRateLimiter.Middleware).Post("/api/sql-libre", metricsHandler.SQLLibre)
+
+	// API: Chat NL -> SQL (rate limited)
+	r.With(chatRateLimiter.Middleware).Post("/api/chat", chatHandler.HandleChat)
 
 	// Start server
 	addr := ":" + cfg.Port
 	log.Printf("POS AI-First server starting on http://localhost%s", addr)
+	log.Printf("Security: Rate limit 20 req/min on chat/sql endpoints")
+	log.Printf("Security: Audit logging enabled")
+	log.Printf("Security: Jailbreak detection active")
+	log.Printf("Security: Table whitelist enforcement active")
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}

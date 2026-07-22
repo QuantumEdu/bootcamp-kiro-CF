@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 )
 
 // ChatService handles natural language to SQL queries.
@@ -16,6 +17,8 @@ type ChatService struct {
 	readDB     *sql.DB
 	schema     string
 	timeout    time.Duration
+	audit      *middleware.AuditLogger
+	maxRows    int
 }
 
 // ChatResult represents the result of a chat query.
@@ -29,18 +32,30 @@ type ChatResult struct {
 }
 
 // NewChatService creates a new chat service.
-func NewChatService(openRouter *adapters.OpenRouterClient, readDB *sql.DB, schema string, timeoutSecs int) *ChatService {
+func NewChatService(openRouter *adapters.OpenRouterClient, readDB *sql.DB, schema string, timeoutSecs int, audit *middleware.AuditLogger) *ChatService {
 	return &ChatService{
 		openRouter: openRouter,
 		readDB:     readDB,
 		schema:     schema,
 		timeout:    time.Duration(timeoutSecs) * time.Second,
+		audit:      audit,
+		maxRows:    100,
 	}
 }
 
 // ProcessQuery processes a natural language query end-to-end.
-func (s *ChatService) ProcessQuery(ctx context.Context, userQuery string) *ChatResult {
+func (s *ChatService) ProcessQuery(ctx context.Context, userQuery, clientIP string) *ChatResult {
 	result := &ChatResult{Query: userQuery}
+	startTime := time.Now()
+
+	// Validate user input for jailbreak attempts
+	if err := ValidateUserInput(userQuery); err != nil {
+		result.Error = err.Error()
+		if s.audit != nil {
+			s.audit.LogRejection("chat", clientIP, userQuery, "", err.Error())
+		}
+		return result
+	}
 
 	// Generate SQL from natural language
 	systemPrompt := s.buildSystemPrompt()
@@ -69,12 +84,15 @@ func (s *ChatService) ProcessQuery(ctx context.Context, userQuery string) *ChatR
 	// Validate SQL
 	if err := ValidateSQL(generatedSQL); err != nil {
 		result.Error = fmt.Sprintf("La consulta generada no es segura: %v", err)
+		if s.audit != nil {
+			s.audit.LogRejection("chat", clientIP, userQuery, generatedSQL, err.Error())
+		}
 		return result
 	}
 
 	// Add LIMIT if not present
 	if !strings.Contains(strings.ToUpper(generatedSQL), "LIMIT") {
-		generatedSQL += " LIMIT 100"
+		generatedSQL += fmt.Sprintf(" LIMIT %d", s.maxRows)
 	}
 
 	// Execute SQL with timeout
@@ -89,6 +107,13 @@ func (s *ChatService) ProcessQuery(ctx context.Context, userQuery string) *ChatR
 
 	result.Columns = columns
 	result.Results = rows
+
+	// Audit successful query
+	if s.audit != nil {
+		execTime := time.Since(startTime)
+		s.audit.LogQuery("chat", clientIP, userQuery, generatedSQL, execTime, len(rows))
+	}
+
 	return result
 }
 
@@ -105,7 +130,11 @@ func (s *ChatService) executeQuery(ctx context.Context, sqlQuery string) ([]stri
 	}
 
 	var results [][]string
+	rowCount := 0
 	for rows.Next() {
+		if rowCount >= s.maxRows {
+			break
+		}
 		values := make([]interface{}, len(columns))
 		valuePtrs := make([]interface{}, len(columns))
 		for i := range values {
@@ -125,6 +154,7 @@ func (s *ChatService) executeQuery(ctx context.Context, sqlQuery string) ([]stri
 			}
 		}
 		results = append(results, row)
+		rowCount++
 	}
 
 	return columns, results, rows.Err()
