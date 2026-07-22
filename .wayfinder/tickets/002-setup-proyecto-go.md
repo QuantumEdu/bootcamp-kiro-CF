@@ -2,6 +2,9 @@
 title: "Setup del proyecto Go"
 labels: wayfinder:task
 blocking: []
+status: completed
+completed_at: "2026-07-22"
+implemented_in: "commit 0485d14 on main"
 ---
 
 ## Question

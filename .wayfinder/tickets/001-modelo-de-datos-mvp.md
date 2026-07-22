@@ -2,6 +2,9 @@
 title: "Modelo de datos del MVP"
 labels: wayfinder:research
 blocking: ["002-setup-proyecto-go", "003-layout-navegacion-ui", "005-dashboard-metricas"]
+status: completed
+completed_at: "2026-07-22"
+implemented_in: "migrations/001_init.sql"
 ---
 
 ## Question

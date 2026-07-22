@@ -2,6 +2,9 @@
 title: "Seguridad del NL→SQL"
 labels: wayfinder:grilling
 blocking: []
+status: completed
+completed_at: "2026-07-22"
+implemented_in: "feat/tasks-3-4-5 (PR #27) — validator.go jailbreak detection + table whitelist"
 ---
 
 ## Question

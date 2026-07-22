@@ -2,6 +2,9 @@
 title: "Layout y navegación UI"
 labels: wayfinder:grilling
 blocking: []
+status: completed
+completed_at: "2026-07-22"
+implemented_in: "feat/tasks-3-4-5 (PR #27)"
 ---
 
 ## Question
