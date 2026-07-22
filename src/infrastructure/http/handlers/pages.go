@@ -56,15 +56,8 @@ func (h *PageHandler) Metrics(w http.ResponseWriter, r *http.Request) {
 func (h *PageHandler) renderPage(w http.ResponseWriter, templateName string, data map[string]interface{}) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	// Check if this is an HTMX request (partial)
-	if htmxHeader := w.Header().Get("HX-Request"); htmxHeader == "true" {
-		// Render just the content template
-		if err := h.tmpl.ExecuteTemplate(w, templateName, data); err != nil {
-			http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		}
-		return
-	}
-
+	// Check if this is an HTMX request (partial) — check request not response header
+	// Note: we can't read this here without the request, so full render always.
 	// Full page render with layout
 	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
 		http.Error(w, "Error rendering template: "+err.Error(), http.StatusInternalServerError)

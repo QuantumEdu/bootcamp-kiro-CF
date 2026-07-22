@@ -49,16 +49,23 @@ func main() {
 		log.Fatalf("Failed to load templates: %v", err)
 	}
 
+	// --- Repositories ---
+	productRepo := database.NewProductRepo(db)
+	saleRepo := database.NewSaleRepo(db)
+	clientRepo := database.NewClientRepo(db)
+	userRepo := database.NewUserRepo(db)
+
 	// --- Security: Audit Logger ---
 	auditLogger := middleware.NewAuditLogger(db)
 
 	// --- Security: Rate Limiter ---
-	// 20 requests per minute for chat/SQL endpoints
 	chatRateLimiter := middleware.NewRateLimiter(20, 1*time.Minute)
+
+	// --- Security: Auth Middleware ---
+	authMW := middleware.NewAuthMiddleware(userRepo, cfg.SessionSecret, cfg.PINMaxAttempts, cfg.PINLockoutMinutes)
 
 	// --- Services ---
 	openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
-
 	schema := getSchema()
 	chatService := usecases.NewChatService(openRouter, readDB, schema, cfg.QueryTimeoutSecs, auditLogger)
 
@@ -66,6 +73,10 @@ func main() {
 	pageHandler := handlers.NewPageHandler(tmpl)
 	metricsHandler := handlers.NewMetricsHandler(db)
 	chatHandler := handlers.NewChatHandler(chatService, tmpl)
+	productHandler := handlers.NewProductHandler(productRepo, tmpl)
+	saleHandler := handlers.NewSaleHandler(saleRepo)
+	clientHandler := handlers.NewClientHandler(clientRepo, tmpl)
+	authHandler := handlers.NewAuthHandler(authMW, tmpl)
 
 	// --- Router ---
 	r := chi.NewRouter()
@@ -75,42 +86,66 @@ func main() {
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.Compress(5))
 
-	// Static files
+	// Static files (no auth required)
 	fileServer := http.FileServer(http.Dir("static"))
 	r.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
-	// Pages
-	r.Get("/", pageHandler.Dashboard)
-	r.Get("/productos", pageHandler.Products)
-	r.Get("/productos/nuevo", pageHandler.ProductForm)
-	r.Get("/ventas", pageHandler.Sales)
-	r.Get("/metricas", pageHandler.Metrics)
+	// Public routes (no auth)
+	r.Get("/login", authHandler.LoginPage)
+	r.Post("/login", authHandler.Login)
 
-	// API: Metrics (HTMX fragments)
-	r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
-	r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
-	r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
-	r.Get("/api/metrics/ventas-sparkline", metricsHandler.VentasSparkline)
-	r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
-	r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
-	r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
-	r.Get("/api/metrics/ingresos", metricsHandler.Ingresos)
-	r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
-	r.Get("/api/metrics/sin-rotacion", metricsHandler.ProductosSinRotacion)
+	// Protected routes (require auth)
+	r.Group(func(r chi.Router) {
+		r.Use(authMW.RequireAuth)
 
-	// API: SQL Libre (rate limited)
-	r.With(chatRateLimiter.Middleware).Post("/api/sql-libre", metricsHandler.SQLLibre)
+		// Pages
+		r.Get("/", pageHandler.Dashboard)
+		r.Get("/metricas", pageHandler.Metrics)
+		r.Get("/logout", authHandler.Logout)
 
-	// API: Chat NL -> SQL (rate limited)
-	r.With(chatRateLimiter.Middleware).Post("/api/chat", chatHandler.HandleChat)
+		// Products
+		r.Get("/productos", productHandler.List)
+		r.Get("/productos/nuevo", productHandler.Form)
+		r.Get("/productos/{id}/editar", productHandler.Form)
+		r.Post("/productos", productHandler.Create)
+
+		// Sales
+		r.Get("/ventas", pageHandler.Sales)
+		r.Post("/api/ventas", saleHandler.Create)
+		r.Get("/api/ventas/recientes", saleHandler.Recent)
+
+		// Clients
+		r.Get("/clientes", clientHandler.List)
+		r.Post("/clientes", clientHandler.Create)
+
+		// API: Product search (for sales)
+		r.Get("/api/productos/buscar", productHandler.Search)
+
+		// API: Metrics (HTMX fragments)
+		r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
+		r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
+		r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
+		r.Get("/api/metrics/ventas-sparkline", metricsHandler.VentasSparkline)
+		r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
+		r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
+		r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
+		r.Get("/api/metrics/ingresos", metricsHandler.Ingresos)
+		r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
+		r.Get("/api/metrics/sin-rotacion", metricsHandler.ProductosSinRotacion)
+
+		// API: SQL Libre (rate limited)
+		r.With(chatRateLimiter.Middleware).Post("/api/sql-libre", metricsHandler.SQLLibre)
+
+		// API: Chat NL -> SQL (rate limited)
+		r.With(chatRateLimiter.Middleware).Post("/api/chat", chatHandler.HandleChat)
+	})
 
 	// Start server
 	addr := ":" + cfg.Port
 	log.Printf("POS AI-First server starting on http://localhost%s", addr)
+	log.Printf("Auth: PIN-based login enabled (max %d attempts, %d min lockout)", cfg.PINMaxAttempts, cfg.PINLockoutMinutes)
 	log.Printf("Security: Rate limit 20 req/min on chat/sql endpoints")
-	log.Printf("Security: Audit logging enabled")
-	log.Printf("Security: Jailbreak detection active")
-	log.Printf("Security: Table whitelist enforcement active")
+	log.Printf("Security: Audit logging, jailbreak detection, table whitelist active")
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}

@@ -1,0 +1,74 @@
+{{define "content"}}
+<div class="space-y-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-800">Clientes</h2>
+        <button onclick="document.getElementById('new-client-form').classList.toggle('hidden')"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+            + Nuevo Cliente
+        </button>
+    </div>
+
+    <!-- New client form (hidden by default) -->
+    <div id="new-client-form" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <form hx-post="/clientes" hx-target="#main-content" class="space-y-3">
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                    <input type="text" name="nombre" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                    <input type="tel" name="telefono"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Direccion</label>
+                    <input type="text" name="direccion"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+                    Guardar Cliente
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Search -->
+    <div class="flex gap-3">
+        <input type="search" name="q" placeholder="Buscar cliente..."
+               hx-get="/clientes" hx-target="#clients-table" hx-trigger="keyup changed delay:300ms"
+               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Telefono</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Direccion</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">Desde</th>
+                </tr>
+            </thead>
+            <tbody id="clients-table" class="divide-y divide-gray-100">
+                {{range .Clients}}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{.Nombre}}</td>
+                    <td class="px-4 py-3 text-gray-500">{{.Telefono}}</td>
+                    <td class="px-4 py-3 text-gray-500">{{.Direccion}}</td>
+                    <td class="px-4 py-3 text-gray-400 text-xs">{{.CreatedAt}}</td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-gray-400">No hay clientes registrados</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
