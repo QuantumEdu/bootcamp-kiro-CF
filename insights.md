@@ -383,3 +383,51 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 **Flujo diferente:** Un spec por categoría (bugfixes vs features) sería más limpio para tracking en GitHub, pero para un MVP de 5 días un solo spec consolidado es más práctico.
 
 ---
+
+## Prompt 20: "actualiza tambien la presentacion con todos estos camb..."
+
+**Lo que pedí:** Dos cosas combinadas: (1) actualizar la presentación con los cambios implementados (client CRUD, admin config, UI fixes), (2) incluir los Powers necesarios para la migración a AWS.
+**Lo que pasó:** Se actualizó `presentacion.md` añadiendo: diapositiva 14 (nuevas funcionalidades implementadas), diapositiva 19 (Powers para AWS con tabla de instalados vs. necesarios), diapositiva 20 (próximos pasos con timeline). Se actualizaron también las diapositivas 7 (Powers), 16 (Resultados), y 17 (Lecciones). La presentación pasó de 19 a 21 diapositivas. Esto se hizo EN PARALELO con la ejecución de las 22 tareas del spec ui-fixes-and-admin-config.
+**Versión profesional:**
+> "Actualiza `presentacion.md`: (1) Agrega slide con las features nuevas (Client CRUD, Admin Config AES-GCM, UI fixes). (2) Agrega slide con los Kiro Powers necesarios para AWS (tabla comparativa: instalados vs. pendientes). (3) Actualiza slides de resultados y lecciones con métricas actualizadas. Ejecuta esto en paralelo con las tareas del spec."
+
+**Lo que me faltó pedir:**
+- Especificar el número exacto de diapositiva donde insertarlas
+- Indicar si quería reemplazar la diapositiva de AWS existente o complementarla
+
+**Flujo diferente:** Pedir la actualización de presentación como tarea separada del "run all tasks" hubiera sido más claro, pero combinarlos aprovechó el paralelismo del agente.
+
+---
+
+## Prompt 21: "realiza commit, push y merge si es necesario"
+
+**Lo que pedí:** Commit, push a rama nueva, y merge a main.
+**Lo que pasó:** Se creó branch `feat/ui-fixes-and-admin-config`, commit con mensaje detallado (41 archivos, 2873 insertions), push, PR #29 creado con descripción completa, y merge inmediato con delete de branch. Fast-forward limpio.
+**Versión profesional:**
+> "Haz commit de todos los cambios en rama `feat/ui-fixes-and-admin-config`, push, crea PR con descripción de los cambios, y merge a main."
+
+**Lo que me faltó pedir:**
+- Nada — prompt corto y efectivo para una acción mecánica bien definida
+- El agente infirió correctamente el nombre de la rama basado en el spec
+
+**Flujo diferente:** Este es un buen ejemplo de prompt mínimo para operaciones git rutinarias. No necesita más contexto porque el agente ya sabe qué cambió.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 21 |
+| Prompts de confirmación/aprobación | 3 (14%) |
+| Prompts multi-acción | 7 |
+| Archivos creados esta sesión | 68+ (dominio, tests, adapters, handlers, templates, specs, governance) |
+| Issues en GitHub | 20 closed + 3 open |
+| PRs creados y mergeados | 3 (#28, #29) |
+| Tasks completadas (ui-fixes spec) | 22/22 (100%) |
+| Tasks completadas (pos-ai-first spec) | 129/137 (94%) |
+| Tests passing | ✅ All packages green |
+| Property tests | 3 (RequireRole 150iter, CryptoRoundTrip, MaskAPIKey) |
+| Lint | ✅ Zero warnings |
+| Build | ✅ Clean |
+| Presentación | 21 diapositivas |
+
+---
