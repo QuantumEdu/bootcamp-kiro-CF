@@ -1,0 +1,27 @@
+{{define "products/_row.html"}}
+<tr id="product-{{.ID}}" class="hover:bg-gray-50">
+    <td class="px-4 py-3 font-medium text-gray-900">{{.Nombre}}</td>
+    <td class="px-4 py-3 text-gray-500">{{.SKU}}</td>
+    <td class="px-4 py-3 text-right text-gray-900">${{printf "%.2f" .PrecioVenta}}</td>
+    <td class="px-4 py-3 text-right {{if .IsLowStock}}text-red-600 font-medium{{else}}text-gray-900{{end}}">{{printf "%.0f" .StockActual}}</td>
+    <td class="px-4 py-3 text-right space-x-2">
+        <button
+            hx-get="/productos/{{.ID}}/edit"
+            hx-target="#product-form-area"
+            hx-swap="innerHTML"
+            class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+        >
+            Editar
+        </button>
+        <button
+            hx-delete="/productos/{{.ID}}"
+            hx-target="#product-{{.ID}}"
+            hx-swap="outerHTML"
+            hx-confirm="¿Desactivar este producto?"
+            class="text-red-500 hover:text-red-700 text-sm font-medium"
+        >
+            Desactivar
+        </button>
+    </td>
+</tr>
+{{end}}

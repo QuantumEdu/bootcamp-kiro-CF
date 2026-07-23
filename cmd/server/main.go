@@ -39,6 +39,7 @@ func main() {
 	// Services
 	openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
 	nlsqlService := nlsql.NewService(openRouter, db.RO, getSchema(), cfg.QueryTimeoutSeconds)
+	nlsqlService.SetLogger(nlsql.NewQueryLogger(db.RW))
 
 	// Handlers
 	pageHandler := handlers.NewPageHandler(tmpl)
