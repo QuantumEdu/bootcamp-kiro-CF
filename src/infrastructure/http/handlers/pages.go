@@ -17,25 +17,25 @@ func NewPageHandler(tmpl *template.Template) *PageHandler {
 
 // Dashboard renders the dashboard.
 func (h *PageHandler) Dashboard(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "Dashboard")
+	h.render(w, r, "Dashboard")
 }
 
 // Products renders the products page.
 func (h *PageHandler) Products(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "Productos")
+	h.render(w, r, "Productos")
 }
 
 // Sales renders the sales page.
 func (h *PageHandler) Sales(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "Ventas")
+	h.render(w, r, "Ventas")
 }
 
 // Metrics renders the metrics page.
 func (h *PageHandler) Metrics(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "Metricas")
+	h.render(w, r, "Metricas")
 }
 
-func (h *PageHandler) render(w http.ResponseWriter, title string) {
+func (h *PageHandler) render(w http.ResponseWriter, r *http.Request, title string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	// Determine which content template to use
@@ -50,7 +50,7 @@ func (h *PageHandler) render(w http.ResponseWriter, title string) {
 	}
 	_ = contentTmpl
 
-	data := map[string]interface{}{"PageTitle": title}
+	data := WithUserContext(r, map[string]interface{}{"PageTitle": title})
 	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
 		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
 	}

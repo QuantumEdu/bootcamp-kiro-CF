@@ -85,12 +85,13 @@
 
 **Título:** El poder de Kiro: Specs, Steering, Powers y Hooks  
 **Descripción:**
-- **Specs:** Workflow estructurado Requirements → Design → Tasks
-- **Steering:** Reglas persistentes del proyecto (arquitectura, testing, seguridad, quality, convenciones)
-- **Powers:** Long-Term Memory para persistencia entre sesiones, Context7 para docs actualizados
-- **Hooks:** Automatización (lint on save, test after task, etc.)
+- **Specs:** Workflow estructurado Requirements → Design → Tasks, con ejecución paralela por waves
+- **Steering:** Reglas persistentes del proyecto (arquitectura, testing, seguridad, quality, convenciones, design patterns)
+- **Powers:** LTM para memoria entre sesiones, Context7 para docs actualizados, Power Builder para crear powers custom
+- **Hooks:** Automatización (lint on save, test after task, auto-doc de prompts)
+- **Task DAG:** Grafo de dependencias para ejecutar tareas en paralelo sin conflictos
 
-**Comentarios para el presentador:** "Kiro no es solo autocomplete. Es un sistema que entiende tu proyecto, mantiene contexto, y trabaja con reglas que tú defines."  
+**Comentarios para el presentador:** "Kiro no es solo autocomplete. Es un sistema que entiende tu proyecto, mantiene contexto, ejecuta tareas en paralelo respetando dependencias, y trabaja con reglas que tú defines. 5 steering files definen cómo trabaja MI proyecto."  
 **Propuesta de diseño:** Diagrama de 4 cuadrantes: Specs | Steering | Powers | Hooks, con iconos y 1-liner de cada uno.
 
 ---
@@ -196,92 +197,171 @@
 
 ---
 
-## Diapositiva 14: Demo en vivo
+## Diapositiva 14: Nuevas funcionalidades — UI Fixes y Admin Config
+
+**Título:** Iteración 2: Gestión de Clientes + Configuración Admin  
+**Descripción:**
+- **Logout visible:** Botón "Cerrar Sesión" en el sidebar footer para todos los usuarios
+- **Nuevo Producto:** Botón directo en la lista de productos para crear rápido
+- **CRUD Clientes:** Listado, creación con validación de nombre, tabla con datos de contacto
+- **Admin Config:** Página exclusiva para admins — almacena API key cifrada con AES-GCM
+- **HTMX No-Cache:** Middleware que garantiza datos frescos en cada navegación
+- **Sidebar inteligente:** "Configuración" solo visible para rol admin (template conditional)
+
+**Flujo técnico de seguridad (API Key):**
+```
+Admin → Form → AES-GCM Encrypt (SHA-256 de SESSION_SECRET) → SQLite configuracion → Decrypt on read → Mask (****últimos4)
+```
+
+**Comentarios para el presentador:** "Esto se construyó con el spec workflow de Kiro: requirements → design → tasks → ejecución paralela por waves. 30 tareas, 5 waves, resolviendo dependencias automáticamente."  
+**Propuesta de diseño:** Split: izquierda sidebar con las nuevas opciones, derecha el formulario de config con la key enmascarada.
+
+---
+
+## Diapositiva 15: Demo en vivo
 
 **Título:** Demo: Pregúntale a tu POS  
 **Descripción:**
 - Login con PIN
-- CRUD de productos
+- CRUD de productos (con botón "Nuevo Producto")
+- Gestión de clientes (crear, listar)
 - Registrar una venta
 - Preguntar: "¿Qué vendí hoy?"
 - Dashboard con métricas actualizándose
+- Admin: configurar API key cifrada
 
-**Comentarios para el presentador:** Preparar la demo con datos seeded. Tener backup en video por si falla la red.  
+**Comentarios para el presentador:** Preparar la demo con datos seeded. Mostrar el flujo completo: login → clientes → venta → chat AI → config admin. Tener backup en video por si falla la red.  
 **Propuesta de diseño:** Pantalla completa del POS funcionando, sin slides — es la demo real.
 
 ---
 
-## Diapositiva 15: Resultados y métricas
+## Diapositiva 16: Resultados y métricas
 
 **Título:** Lo que logramos en 5 días  
 **Descripción:**
-- 20 tareas planificadas con dependency graph
+- 20+ tareas planificadas con dependency graph (DAG por waves)
 - ~118 sub-tareas detalladas
 - 5 capas de seguridad NL→SQL
-- Arquitectura hexagonal limpia
-- Tests en dominio ≥90%
+- Arquitectura hexagonal limpia con puertos e interfaces
+- Tests en dominio ≥90%, table-driven + property tests
 - Zero lint warnings
 - Chat AI funcional con respuestas en español
+- CRUD completo: Productos, Ventas, Clientes
+- Panel admin con cifrado AES-GCM para API keys
+- Ejecución paralela de tasks por waves (5 tasks simultáneas)
 - GitHub Project Board con Kanban automatizado
 - Hook de auto-documentación de prompts
 - LTM Power para persistencia entre sesiones
 
-**Comentarios para el presentador:** Números concretos. Mostrar la barra de progreso del milestone y el Project Board.  
+**Comentarios para el presentador:** Números concretos. Mostrar la barra de progreso del milestone y el Project Board. Enfatizar la ejecución paralela: "5 tareas al mismo tiempo, respetando dependencias."  
 **Propuesta de diseño:** Grid de métricas con iconos y números grandes. Estilo dashboard.
 
 ---
 
-## Diapositiva 16: Lecciones aprendidas
+## Diapositiva 17: Lecciones aprendidas
 
 **Título:** Lo que aprendí  
 **Descripción:**
 - Kiro + steering files = consistencia sin esfuerzo
 - LTM power = no perder contexto entre sesiones
 - Spec workflow = no empezar a codear sin plan
+- Wave-based task execution = máxima eficiencia con dependencias respetadas
 - NL→SQL requiere múltiples capas de defensa, no solo prompt engineering
-- HTMX simplifica drasticamente el frontend para MVPs
+- HTMX simplifica drásticamente el frontend para MVPs
+- AES-GCM + SESSION_SECRET = secretos protegidos sin servicios externos
+- Property tests validan correctitud universal (no solo happy paths)
 
-**Comentarios para el presentador:** Sé honesto sobre qué fue difícil y qué sorprendió.  
+**Comentarios para el presentador:** Sé honesto sobre qué fue difícil y qué sorprendió. "La ejecución paralela por waves fue reveladora — 5 agentes trabajando al mismo tiempo sin pisarse."  
 **Propuesta de diseño:** Post-its o cards con cada lección, estilo retrospectiva.
 
 ---
 
-## Diapositiva 17: Deploy en AWS — Plan de producción
+## Diapositiva 18: Deploy en AWS — Plan de producción
 
 **Título:** De MVP local a producción en AWS  
 **Descripción:**
-- **Compute:** AWS App Runner o ECS Fargate (Go binary en container, auto-scaling)
-- **Base de datos:** Amazon RDS PostgreSQL (migración de SQLite, backups automáticos)
-- **AI:** Amazon Bedrock (Claude 3 Haiku) reemplaza OpenRouter — latencia <2s, sin API key externa
-- **Storage:** S3 para assets estáticos + CloudFront CDN
-- **Secrets:** AWS Secrets Manager para API keys y configs
+- **Compute:** AWS App Runner o Lambda (Go binary en container, auto-scaling 0→N)
+- **Base de datos:** Amazon RDS PostgreSQL (migración de SQLite, backups automáticos, Multi-AZ)
+- **AI:** Amazon Bedrock (Claude 3 Haiku) reemplaza OpenRouter — latencia <2s, en tu VPC
+- **Storage:** S3 para assets estáticos + CloudFront CDN global
+- **Secrets:** AWS Secrets Manager reemplaza SESSION_SECRET local
 - **CI/CD:** GitHub Actions → ECR → App Runner (deploy automático en push a main)
 - **Monitoring:** CloudWatch Logs + X-Ray para tracing del pipeline NL→SQL
-- **Costo estimado:** ~$25-40/mes para una tienda (Fargate spot + RDS t4g.micro + Bedrock pay-per-use)
+- **Costo estimado:** ~$25-40/mes (o ~$0 con Lambda free tier + créditos educativos)
 
-**Comentarios para el presentador:** "El MVP corre local con SQLite. Para producción, el cambio es mínimo gracias a la arquitectura hexagonal — solo cambiamos los adaptadores, no la lógica."  
+**Lo que NO cambia (gracias a hexagonal):**
+- `src/domain/` — 0 cambios
+- `src/application/` — 0 cambios  
+- `templates/` — 0 cambios
+
+**Lo que sí cambia (solo adaptadores):**
+- SQLiteRepo → PostgresRepo (misma interfaz)
+- OpenRouterAdapter → BedrockAdapter (misma interfaz)
+- config.go → Secrets Manager
+
+**Comentarios para el presentador:** "El MVP corre local con SQLite. Para producción, el cambio es mínimo gracias a la arquitectura hexagonal — solo cambiamos los adaptadores, no la lógica. 5 archivos nuevos, 2 modificados."  
 **Propuesta de diseño:** Diagrama AWS con los servicios conectados. Flecha mostrando qué cambia (adaptadores) vs. qué se mantiene (dominio/application).
 
 ---
 
-## Diapositiva 18: Próximos pasos
+## Diapositiva 19: Kiro Powers para AWS — Lo que necesitamos
 
-**Título:** Hacia dónde va el proyecto  
+**Título:** Powers y herramientas para la migración a AWS  
 **Descripción:**
-- Migrar a AWS (RDS, Lambda o ECS, Bedrock)
-- Agregar historial de conversación
-- Soporte multi-sucursal
-- Modo offline con sync
-- Analytics más avanzados con dashboards personalizables
 
-**Comentarios para el presentador:** "Este MVP demuestra el concepto. El siguiente paso es llevarlo a producción con AWS."  
-**Propuesta de diseño:** Roadmap horizontal con hitos futuros.
+**Powers actuales del proyecto:**
+| Power | Uso actual |
+|-------|-----------|
+| Long-Term Memory (ltm-power) | Persistencia de contexto entre sesiones |
+| Context7 | Documentación actualizada de librerías y SDKs |
+
+**Powers necesarios para AWS deploy:**
+| Power / Herramienta | Propósito |
+|---------------------|-----------|
+| AWS Documentation MCP Server | Guía de configuración de servicios AWS |
+| AWS CDK / SAM Power | Infraestructura como código (IaC) — definir stack completo |
+| AWS Bedrock Power | Integración con Claude 3 Haiku para NL→SQL en producción |
+| GitHub Actions Power | Automatizar CI/CD pipeline (test → build → deploy) |
+
+**MCP Servers investigados:**
+- `awslabs/aws-documentation-mcp-server` — Docs oficiales de AWS en contexto
+- `awslabs/aws-cdk-mcp-server` — Generar CDK stacks con guía del agente
+- Potencial: power custom para Bedrock runtime + Secrets Manager
+
+**Decisiones pendientes para deploy:**
+1. ¿Lambda (gratis, cold start ~100ms) o App Runner ($7/mes, siempre caliente)?
+2. ¿PostgreSQL RDS o SQLite con EFS?
+3. ¿Bedrock directo o mantener OpenRouter como fallback?
+4. ¿Cuenta AWS nueva (free tier 12 meses) o existente?
+
+**Comentarios para el presentador:** "Kiro Powers son extensibles. Para AWS necesitamos powers de documentación e IaC. La comunidad ya tiene MCP servers de AWS Labs que podemos instalar. La inversión en hexagonal nos ahorra semanas de refactoring."  
+**Propuesta de diseño:** Tabla con íconos de Powers instalados (check verde) vs. necesarios (flecha azul). Logo de AWS + Kiro conectados.
 
 ---
 
-## Diapositiva 19: Cierre
+## Diapositiva 20: Próximos pasos
+
+**Título:** Hacia dónde va el proyecto  
+**Descripción:**
+- **Inmediato:** Instalar AWS Powers en Kiro, crear spec de deployment
+- **Semana 1:** Dockerfile + CI/CD, migrar a RDS PostgreSQL
+- **Semana 2:** Integrar Amazon Bedrock, crear BedrockQueryService
+- **Semana 3:** Setup App Runner/Lambda + CloudFront + monitoring
+- **Futuro:**
+  - Historial de conversación AI
+  - Soporte multi-sucursal
+  - Modo offline con sync
+  - Analytics con dashboards personalizables
+  - Predicción de demanda (Bedrock + datos históricos)
+
+**Comentarios para el presentador:** "Tenemos el plan detallado en `governance/aws-deployment-plan.md`. La migración es de 7 días estimados. El MVP demuestra el concepto; AWS lo lleva a producción."  
+**Propuesta de diseño:** Roadmap horizontal con 3 fases: MVP Local (✅) → AWS Deploy (🔄) → AI Advanced (📋).
+
+---
+
+## Diapositiva 21: Cierre
 
 **Título:** Gracias — ¿Preguntas?  
 **Descripción:** Links al repo, QR code, contacto.  
-**Comentarios para el presentador:** Abre a preguntas. Ten preparadas respuestas para: "¿Por qué no usaste un ORM?", "¿Es seguro ejecutar SQL generado por AI?", "¿Por qué SQLite y no Postgres?"  
+**Comentarios para el presentador:** Abre a preguntas. Ten preparadas respuestas para: "¿Por qué no usaste un ORM?", "¿Es seguro ejecutar SQL generado por AI?", "¿Por qué SQLite y no Postgres?", "¿Qué Powers de Kiro usaste?", "¿Cuánto cuesta correr esto en AWS?"  
 **Propuesta de diseño:** QR al repo + información de contacto sobre fondo limpio.

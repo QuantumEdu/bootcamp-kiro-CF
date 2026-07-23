@@ -107,26 +107,26 @@ CREATE TABLE IF NOT EXISTS configuracion (
 -- ============================================================
 -- ÍNDICES
 -- ============================================================
-CREATE INDEX idx_productos_nombre ON productos(nombre);
-CREATE INDEX idx_productos_sku ON productos(sku);
-CREATE INDEX idx_productos_categoria ON productos(categoria_id);
-CREATE INDEX idx_productos_stock ON productos(stock_actual);
+CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);
+CREATE INDEX IF NOT EXISTS idx_productos_sku ON productos(sku);
+CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria_id);
+CREATE INDEX IF NOT EXISTS idx_productos_stock ON productos(stock_actual);
 
-CREATE INDEX idx_ventas_created_at ON ventas(created_at);
-CREATE INDEX idx_ventas_usuario ON ventas(usuario_id);
-CREATE INDEX idx_ventas_cliente ON ventas(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_ventas_created_at ON ventas(created_at);
+CREATE INDEX IF NOT EXISTS idx_ventas_usuario ON ventas(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_ventas_cliente ON ventas(cliente_id);
 
-CREATE INDEX idx_venta_items_venta ON venta_items(venta_id);
-CREATE INDEX idx_venta_items_producto ON venta_items(producto_id);
+CREATE INDEX IF NOT EXISTS idx_venta_items_venta ON venta_items(venta_id);
+CREATE INDEX IF NOT EXISTS idx_venta_items_producto ON venta_items(producto_id);
 
-CREATE INDEX idx_inventario_producto ON inventario_movimientos(producto_id);
-CREATE INDEX idx_inventario_fecha ON inventario_movimientos(created_at);
-CREATE INDEX idx_inventario_tipo ON inventario_movimientos(tipo);
+CREATE INDEX IF NOT EXISTS idx_inventario_producto ON inventario_movimientos(producto_id);
+CREATE INDEX IF NOT EXISTS idx_inventario_fecha ON inventario_movimientos(created_at);
+CREATE INDEX IF NOT EXISTS idx_inventario_tipo ON inventario_movimientos(tipo);
 
-CREATE INDEX idx_clientes_nombre ON clientes(nombre);
-CREATE INDEX idx_clientes_telefono ON clientes(telefono);
+CREATE INDEX IF NOT EXISTS idx_clientes_nombre ON clientes(nombre);
+CREATE INDEX IF NOT EXISTS idx_clientes_telefono ON clientes(telefono);
 
-CREATE INDEX idx_usuarios_pin ON usuarios(pin_hash);
+CREATE INDEX IF NOT EXISTS idx_usuarios_pin ON usuarios(pin_hash);
 
 -- ============================================================
 -- TRIGGERS

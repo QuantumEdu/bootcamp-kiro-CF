@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/nlsql"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/services"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/use_cases"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/config"
@@ -26,6 +27,11 @@ func main() {
 
 	cfg := config.Load()
 
+	// Validate SESSION_SECRET is set (required for AES-GCM encryption of API keys)
+	if os.Getenv("SESSION_SECRET") == "" {
+		log.Fatalf("SESSION_SECRET environment variable is required but not set")
+	}
+
 	// Database
 	db, err := database.New(cfg.DatabasePath)
 	if err != nil {
@@ -40,6 +46,7 @@ func main() {
 	}
 
 	// Services
+	cryptoService := services.NewCryptoService(cfg.SessionSecret)
 	openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
 	nlsqlService := nlsql.NewService(openRouter, db.RO, getSchema(), cfg.QueryTimeoutSeconds)
 	nlsqlService.SetLogger(nlsql.NewQueryLogger(db.RW))
@@ -52,6 +59,8 @@ func main() {
 	productRepo := adapters.NewSQLiteProductRepository(db.RW)
 	saleRepo := adapters.NewSQLiteSaleRepository(db.RW)
 	inventoryRepo := adapters.NewSQLiteInventoryRepository(db.RW)
+	clientRepo := adapters.NewSQLiteClientRepository(db.RW)
+	configRepo := adapters.NewSQLiteConfigRepository(db.RW)
 
 	// Use Cases
 	authUC := use_cases.NewAuthenticateUser(userRepo)
@@ -60,6 +69,8 @@ func main() {
 	listProductsUC := use_cases.NewListProducts(productRepo)
 	deactivateProductUC := use_cases.NewDeactivateProduct(productRepo)
 	registerSaleUC := use_cases.NewRegisterSale(saleRepo, productRepo, inventoryRepo)
+	createClientUC := use_cases.NewCreateClient(clientRepo)
+	listClientsUC := use_cases.NewListClients(clientRepo)
 
 	// Handlers
 	pageHandler := handlers.NewPageHandler(tmpl)
@@ -68,6 +79,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authUC, tmpl, sessionManager)
 	productHandler := handlers.NewProductHandler(createProductUC, updateProductUC, listProductsUC, deactivateProductUC, productRepo, tmpl)
 	saleHandler := handlers.NewSaleHandler(registerSaleUC, tmpl, sessionManager)
+	adminConfigHandler := handlers.NewAdminConfigHandler(configRepo, cryptoService, tmpl)
+	clientHandler := handlers.NewClientHandler(createClientUC, listClientsUC, tmpl)
 
 	// Router
 	r := chi.NewRouter()
@@ -101,22 +114,32 @@ func main() {
 		r.Get("/metricas", pageHandler.Metrics)
 		r.Post("/logout", authHandler.Logout)
 
+		// Client routes
+		r.Get("/clientes", clientHandler.List)
+		r.Get("/clientes/new", clientHandler.CreateForm)
+		r.Post("/clientes", clientHandler.Create)
+
 		// API: Sales
 		r.Post("/api/ventas", saleHandler.CompleteSale)
 		r.Get("/api/ventas/recientes", metricsHandler.VentasRecientes)
 
-		// API: Metrics (HTMX fragments)
-		r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
-		r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
-		r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
-		r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
-		r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
-		r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
-		r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
+		// HTMX fragment routes — NoCache to prevent stale responses
+		r.Group(func(r chi.Router) {
+			r.Use(mw.NoCache)
 
-		// API: Products
-		r.Get("/api/productos", metricsHandler.ProductosHTMX)
-		r.Get("/api/productos/buscar", metricsHandler.ProductosBuscar)
+			// API: Metrics (HTMX fragments)
+			r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
+			r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
+			r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
+			r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
+			r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
+			r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
+			r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
+
+			// API: Products (HTMX fragments)
+			r.Get("/api/productos", metricsHandler.ProductosHTMX)
+			r.Get("/api/productos/buscar", metricsHandler.ProductosBuscar)
+		})
 		r.Get("/productos/new", productHandler.CreateForm)
 		r.Post("/productos", productHandler.Create)
 		r.Get("/productos/{id}/edit", productHandler.EditForm)
@@ -125,6 +148,13 @@ func main() {
 
 		// API: Chat NL→SQL
 		r.Post("/api/chat", chatHandler.HandleChat)
+
+		// Admin-only routes
+		r.Group(func(r chi.Router) {
+			r.Use(mw.RequireRole(sessionManager, "admin"))
+			r.Get("/admin/config", adminConfigHandler.Show)
+			r.Post("/admin/config", adminConfigHandler.Update)
+		})
 	})
 
 	// Start
