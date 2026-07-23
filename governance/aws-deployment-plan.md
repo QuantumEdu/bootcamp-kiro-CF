@@ -225,3 +225,34 @@ El MVP funciona perfecto con SQLite local para demo y desarrollo. La migración 
 - Se necesite alta disponibilidad
 
 La arquitectura hexagonal garantiza que la migración es de **adaptadores solamente** — la lógica de negocio no se toca.
+
+
+---
+
+## 🔲 PENDIENTE: Free Tier + Kiro Powers para AWS Deploy
+
+### Investigar antes de ejecutar:
+
+1. **Free Tier con Lambda:**
+   - Usar Lambda + API Gateway en vez de App Runner (~$0/mes vs $7/mes)
+   - Lambda: 1M requests/mes always free
+   - Go cold start ~100ms — aceptable para POS
+   - Los $200 en créditos cubren RDS + Bedrock por ~6 meses
+
+2. **Kiro Powers para AWS:**
+   - Buscar en el panel de Powers si hay powers para:
+     - AWS CDK / CloudFormation (IaC)
+     - AWS SAM (Serverless Application Model)
+     - AWS deployment / CI/CD
+     - Amazon Bedrock integration
+   - Evaluar si hay un power de "aws-docs" o similar que ayude con la configuración
+   - Ver si el MCP server `awslabs.aws-documentation-mcp-server` puede guiar el deploy
+
+3. **Decisión pendiente:**
+   - ¿Cuenta AWS nueva (free tier completo) o existente?
+   - ¿Lambda (gratis) o App Runner (más simple pero ~$7/mes)?
+   - ¿Migrar a PostgreSQL o mantener SQLite con EFS?
+   - ¿Bedrock directo o mantener OpenRouter como puente?
+
+### Acción siguiente:
+Cuando estemos listos para deployar, abrir el panel de Powers en Kiro (`Cmd+Shift+P` → "Configure Powers") y buscar powers relacionados con AWS. Luego crear un nuevo spec para el deployment.

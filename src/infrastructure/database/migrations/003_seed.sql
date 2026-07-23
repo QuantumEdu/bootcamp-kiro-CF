@@ -1,8 +1,8 @@
 -- 003_seed.sql — Realistic data for POS AI-First MVP (tienda de abarrotes)
 
 INSERT OR IGNORE INTO usuarios (id, nombre, pin_hash, rol) VALUES
-(1, 'Admin', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'admin'),
-(2, 'Maria Cajera', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'cajero');
+(1, 'Admin', '$2a$10$rxyqum0rxJ9htmlD5QYWE.9CY1XeKQfq7b4BT3RVF.e71GvccInIC', 'admin'),
+(2, 'Maria Cajera', '$2a$10$hnm.vyyIRYJS3u/zENTeBOiuvS85cMGd1mlT8xw8kxyETf.UFOp1G', 'cajero');
 
 INSERT OR IGNORE INTO categorias (id, nombre, descripcion) VALUES
 (1, 'Bebidas', 'Refrescos, aguas, jugos'),

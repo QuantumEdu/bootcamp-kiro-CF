@@ -265,3 +265,121 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | Tests passing | ✅ All packages green |
 
 ---
+
+## Prompt 13: "ok continua con las que si puedes y tambien habia una..."
+
+**Lo que pedí:** Continuar ejecutando tareas automáticas + verificar issues 21/22 en GitHub + revisar presentación + analizar deploy AWS + commit/push/merge.
+**Lo que pasó:** Se verificó que las issues #22 y #23 (Task 19 y 20) son correctas (no existen 21/22 como tareas extra). Se actualizó la presentación añadiendo 3 diapositivas nuevas (onboarding 3→1, multiplataforma Kiro, deploy AWS). Se creó `governance/aws-deployment-plan.md` con análisis completo (App Runner, RDS, Bedrock, costos ~$25-40/mes). Se resolvieron conflictos de merge con origin/main, se reescribió main.go con wiring completo de todos los handlers, y se mergeó PR #28.
+**Versión profesional:**
+> "1. Verifica las issues abiertas en GitHub y confirma si hay tareas 21-22. 2. Actualiza `presentacion.md` añadiendo: onboarding (3 proyectos → elegí 1), uso multiplataforma de Kiro (desktop/web/mobile), y plan de deploy AWS con costos. 3. Crea un documento técnico `governance/aws-deployment-plan.md` con arquitectura AWS propuesta. 4. Haz commit, push a la rama actual, y merge a main."
+
+**Lo que me faltó pedir:**
+- Especificar que "21 y 22" se refería a los numbers de issues en GitHub, no a tasks del spec
+- Indicar si el merge debía ser squash o merge commit
+
+**Flujo diferente:** Separar la verificación de issues (consulta) del trabajo de actualización (acción) para tener respuesta más rápida sobre el estado antes de pedir cambios.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 13 |
+| Prompts de confirmación/aprobación | 3 (23%) |
+| Prompts multi-acción | 5 |
+| Archivos creados esta sesión | 55+ (dominio, tests, adapters, handlers, templates, README, AWS plan) |
+| Issues en GitHub | 20 closed + 3 open (Tasks 19, 20, Revisión) |
+| PRs creados y mergeados | 2 (#28 este session) |
+| Tasks completadas (spec) | 129/137 (94%) |
+| Tests passing | ✅ All 12 packages green |
+| Lint | ✅ Zero warnings |
+| Build | ✅ Clean |
+
+---
+
+## Prompt 14: "respecto a amazon el tier gratuito no opera para esta..."
+
+**Lo que pedí:** Si el free tier de AWS aplica para deployar esta app.
+**Lo que pasó:** Se investigó el estado actual del AWS Free Tier (post julio 2025): nuevas cuentas reciben $200 en créditos + 30+ servicios always free. Lambda (1M req/mes gratis), S3 (5GB), CloudFront (1TB), CloudWatch — todos aplican. Con Lambda en vez de App Runner, la app podría correr gratis 6+ meses.
+**Versión profesional:**
+> "Analiza si los servicios AWS que necesita el POS (compute, DB, AI) están cubiertos por el Free Tier actual. Incluye: (1) qué servicios tienen always-free, (2) qué cubren los $200 en créditos, (3) cuánto duraría sin costo, y (4) qué alternativa de arquitectura minimiza costos post-free-tier."
+
+**Lo que me faltó pedir:**
+- Indicar si tengo cuenta AWS nueva o existente (los beneficios cambian)
+- Preguntar por Lambda como alternativa a App Runner desde el inicio
+
+**Flujo diferente:** Debí preguntar esto ANTES de crear el deployment plan, para que el documento incluyera la opción free-tier desde el principio.
+
+---
+
+## Prompt 15: "guardalo como pendiente porque tambien faltaria ver que..."
+
+**Lo que pedí:** Guardar la investigación del free tier como pendiente y anotar que también hay que investigar qué Kiro Powers de AWS existen para hacer el deploy.
+**Lo que pasó:** Se añadió una sección "PENDIENTE" al final de `aws-deployment-plan.md` con los items a investigar: Lambda vs App Runner, Powers de AWS en Kiro, decisiones pendientes (cuenta nueva vs existente, PostgreSQL vs SQLite+EFS, Bedrock vs OpenRouter).
+**Versión profesional:**
+> "Agrega una sección 'Pendientes' al plan de deploy con: (1) evaluar Lambda+free tier como alternativa, (2) investigar qué Kiro Powers de AWS están disponibles para automatizar el deploy (CDK, SAM, Bedrock), (3) listar las decisiones que necesito tomar antes de ejecutar."
+
+**Lo que me faltó pedir:**
+- Nada — es un registro de pendientes correcto para la próxima sesión
+
+**Flujo diferente:** Esto es buen ejemplo de usar el agente como "libreta" — anotar pendientes para no olvidarlos.
+
+---
+
+## Prompt 16: "una pregunta mas en ese free tier de amazon en sus dife..."
+
+**Lo que pedí:** Si con Kiro y sus Powers se puede automatizar todo el deploy a AWS dentro del free tier.
+**Lo que pasó:** Se investigaron los MCP servers de AWS disponibles para Kiro: IaC MCP Server (CDK/CloudFormation), Serverless MCP Server (Lambda), Deployment Agent SOPs, Security Agent (Kiro Power), Lambda Durable Power. Se confirmó que sí es posible automatizar el deploy casi por completo con un prompt, combinando estos tools con el free tier ($0/mes).
+**Versión profesional:**
+> "¿Es posible automatizar el deploy completo a AWS (Lambda, RDS, Bedrock) usando Kiro Powers y MCP servers, manteniéndose dentro del free tier? Lista qué MCP servers necesitaría instalar y qué pasos seguirían siendo manuales."
+
+**Lo que me faltó pedir:**
+- Pedir que se instalen los MCP servers ahora para tenerlos listos
+- Preguntar si necesito alguna configuración previa (AWS CLI, credentials)
+
+**Flujo diferente:** Esta es una buena pregunta de "viabilidad" que vale la pena hacer ANTES de planificar el deploy, para saber qué es posible.
+
+---
+
+## Prompt 17: "si instalalos de una vez"
+
+**Lo que pedí:** Instalar los MCP servers/Powers de AWS ahora.
+**Lo que pasó:** Se abrió el panel de configuración de Powers. La instalación de Powers requiere interacción manual del usuario en el panel visual de Kiro — el agente no puede hacer click en "Install". Se proporcionó la lista de lo que buscar: AWS Documentation, AWS IaC, AWS Serverless, AWS Security Agent.
+**Versión profesional:**
+> "Abre el panel de Powers e instala los MCP servers de AWS (IaC, Serverless, Documentation, Security). Si requiere configuración adicional (credentials, CLI), indícame los pasos."
+
+**Lo que me faltó pedir:**
+- Nada — la limitación es que los Powers se instalan desde UI, no por comando
+
+**Flujo diferente:** El agente podría haber intentado configurar los MCP servers directamente en `.kiro/settings.json` si existiera esa opción programática.
+
+---
+
+## Prompt 18: "antes de continuar ejecuta la aplicacion para ver su f..."
+
+**Lo que pedí:** Ejecutar la aplicación para verificar que funciona.
+**Lo que pasó:** Se encontraron 3 bugs al ejecutar: (1) `CREATE INDEX` sin `IF NOT EXISTS` fallaba en re-ejecución de migrations, (2) PIN hashes en seed eran SHA-256 en vez de bcrypt — bcrypt no matcheaba, (3) `entities.Role` type no registrado en gob para session encoding. Se corrigieron los 3 y se verificó el flujo completo: login (1234) → dashboard → metrics APIs → productos. Todo funcional.
+**Versión profesional:**
+> "Ejecuta `make run` y verifica el flujo completo: (1) server inicia sin errores, (2) login con PIN funciona, (3) dashboard carga métricas, (4) APIs responden. Si hay errores, corrígelos y re-verifica."
+
+**Lo que me faltó pedir:**
+- Debí pedir esto mucho antes (después de implementar, antes de hacer merge)
+- Pedir que se corra `make seed` también para tener datos de demo más ricos
+
+**Flujo diferente:** El testing E2E debería ser un paso obligatorio ANTES de merge a main, no después. Incluirlo como pre-merge check en el workflow.
+
+---
+
+## Prompt 19: "Mediante specs, algunos issues a corregir, o features..."
+
+**Lo que pedí:** Crear un spec para 5 issues/features (logout, alta productos/clientes, refresh HTMX, config API key admin) + recomendación de Powers AWS a instalar.
+**Lo que pasó:** Se creó el spec completo `ui-fixes-and-admin-config` usando Quick Plan workflow (clarify → requirements → design → tasks). 6 requerimientos, design con arquitectura hexagonal + CryptoService + 5 correctness properties, 25 sub-tareas en 5 waves paralelas. Se recomendaron 4 Powers de AWS a instalar (SAM, CDK/CloudFormation, DevOps Agent, Strands).
+**Versión profesional:**
+> "Crea un nuevo spec llamado 'ui-fixes-and-admin-config' con Quick Plan para: (1) logout button en sidebar, (2) botón 'Nuevo Producto' + CRUD clientes, (3) fix HTMX cache/refresh, (4) panel admin para API key con encriptación AES-GCM. Además, de los AWS Powers disponibles en el panel, recomiéndame cuáles instalar para el futuro deploy a Lambda."
+
+**Lo que me faltó pedir:**
+- Indicar si quería ejecutar las tareas inmediatamente después de crear el spec
+- Separar los bugs (logout, refresh) de las features (clientes, config) en specs diferentes
+
+**Flujo diferente:** Un spec por categoría (bugfixes vs features) sería más limpio para tracking en GitHub, pero para un MVP de 5 días un solo spec consolidado es más práctico.
+
+---

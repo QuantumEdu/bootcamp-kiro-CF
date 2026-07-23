@@ -33,9 +33,9 @@ func NewSaleHandler(
 
 // NewSalePage handles GET /ventas/new — renders the POS-style sale capture page.
 func (h *SaleHandler) NewSalePage(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{
+	data := WithUserContext(r, map[string]interface{}{
 		"PageTitle": "Nueva Venta",
-	}
+	})
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {

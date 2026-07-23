@@ -56,7 +56,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Store user info in session.
 	h.sessions.Put(r.Context(), "user_id", strconv.FormatInt(user.ID, 10))
 	h.sessions.Put(r.Context(), "user_name", user.Nombre)
-	h.sessions.Put(r.Context(), "user_role", user.Rol)
+	h.sessions.Put(r.Context(), "user_role", string(user.Rol))
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

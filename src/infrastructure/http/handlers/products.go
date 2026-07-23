@@ -64,10 +64,10 @@ func (h *ProductHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Full page render.
-	data := map[string]interface{}{
+	data := WithUserContext(r, map[string]interface{}{
 		"PageTitle": "Productos",
 		"Products":  products,
-	}
+	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
 		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
