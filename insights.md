@@ -191,3 +191,77 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | GitHub Project Board | ✅ Configurado con 4 columnas + 3 campos custom |
 | LTM checkpoint | ✅ Guardado con 5 decisiones |
 | Hooks activos | 1 (prompt-insights-log) |
+
+---
+
+## Prompt 9: "Update the tasks for pos-ai-first-mvp"
+
+**Lo que pedí:** Actualizar las tareas del spec pos-ai-first-mvp.
+**Lo que pasó:** El agente preguntó qué tipo de actualización quería (status, restructure, add, regenerate). Seleccioné "Update completion status". Escaneó todo el codebase, confirmó que Tasks 1-2 ya estaban correctamente marcadas como done y 3-20 como pending. Hizo dos correcciones menores de precisión: (1) Task 1.7 — el driver SQLite real es `modernc.org/sqlite` no `go-sqlite3`, y `x/crypto`/`scs` aún no están instalados; (2) Task 2.2 — aclaró que usa el driver pure-Go.
+**Versión profesional:**
+> "Revisa el codebase actual y actualiza el completion status de `tasks.md` en el spec `pos-ai-first-mvp`. Marca como done solo lo que realmente existe implementado, y corrige cualquier discrepancia entre lo que dicen las tareas y lo que hay en el código (dependencias instaladas, driver usado, etc.)."
+
+**Lo que me faltó pedir:**
+- Especificar desde el inicio que quería "actualizar el status de completitud basado en el código real"
+- Pude haber mencionado que sabía que solo Tasks 1-2 estaban hechas para acelerar
+
+**Flujo diferente:** Un prompt más directo como "sincroniza tasks.md con el estado actual del repo" hubiera evitado la pregunta de clarificación.
+
+---
+
+## Prompt 10: "antes de continuar en la task 3, pudiera continuar en la app o kiro web?"
+
+**Lo que pedí:** Si puedo cambiar de entorno (desktop → web/mobile) para seguir trabajando.  
+**Lo que pasó:** El agente confirmó que sí, todo está en main y Sync Files sincroniza.  
+**Versión profesional:**
+> "Todo está en main. ¿Puedo hacer Sync Files y continuar la Task 3 desde app.kiro.dev? ¿Hay alguna consideración de compatibilidad entre entornos?"
+
+**Lo que me faltó pedir:**
+- Preguntar si la sincronización es bidireccional (lo preguntó en el siguiente prompt)
+
+---
+
+## Prompt 11: "si le doy sync files sincroniza en ambos sentidos?"
+
+**Lo que pedí:** Confirmar si Sync Files es bidireccional (web→desktop también).  
+**Lo que pasó:** Se explicó el flujo de sincronización.  
+**Versión profesional:**
+> "¿Kiro Sync Files es bidireccional? Si trabajo en app.kiro.dev y luego vuelvo al desktop, ¿los cambios se descargan automáticamente al hacer Sync?"
+
+**Lo que me faltó pedir:**
+- Nada — pregunta directa y clara.
+
+---
+
+## Prompt 12: "Se realizaron modificaciones en el repositorio desde kiro dev..."
+
+**Lo que pedí:** Actualizar el proyecto local (git pull) y continuar con las tareas pendientes.
+**Lo que pasó:** Se hizo git pull (recibió 25 archivos nuevos con 1211 líneas), se analizó el código existente vs tasks.md, se sincronizó el estado de tareas marcando como completadas las que ya estaban implementadas (tasks 4, 6, 7, 8, 11, 13, 14, 15 parcialmente), y luego se ejecutaron tasks 3.1-3.7, 4.2-4.3, 5.1-5.6, 6.5-6.6, 7.3-7.5, 8.4-8.5, 9.1 usando subagentes. Progreso: 77/137 tareas (56%).
+**Versión profesional:**
+> "1. Haz `git pull` para sincronizar con el remoto. 2. Analiza qué código nuevo entró y actualiza `tasks.md` marcando como completadas las tareas ya implementadas. 3. Ejecuta todas las tareas pendientes en orden de dependencias usando el orchestrator. Si algo falla, continúa con las que no dependen de la fallida."
+
+**Lo que me faltó pedir:**
+- Indicar explícitamente que quería ejecución continua (tuvo que decir "continua" 3 veces)
+- Especificar un límite de tareas o tiempo (para no gastar contexto innecesariamente)
+
+**Flujo diferente:** Un solo prompt "git pull + sync tasks.md status + ejecuta todas las tareas ready hasta completar o agotar contexto" hubiera evitado las interrupciones.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 12 |
+| Prompts de confirmación/aprobación | 3 (25%) |
+| Prompts multi-acción | 4 |
+| Errores encontrados por permisos | 1 (GitHub Projects scope) |
+| Archivos creados | 5+ (tasks reformateado, presentacion.md, video.md, insights.md, hook) + 20+ domain/test files |
+| Issues creadas | 20 |
+| PRs creados | 1 |
+| Commits realizados | 4+ |
+| GitHub Project Board | ✅ Configurado con 4 columnas + 3 campos custom |
+| LTM checkpoint | ✅ Guardado con 5 decisiones |
+| Hooks activos | 1 (prompt-insights-log) |
+| Tasks completadas (spec) | 77/137 (56%) |
+| Tests passing | ✅ All packages green |
+
+---

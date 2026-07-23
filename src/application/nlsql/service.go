@@ -12,12 +12,13 @@ import (
 
 // ChatResult represents the result of a chat query.
 type ChatResult struct {
-	Query       string
-	SQL         string
-	Explanation string
-	Columns     []string
-	Results     [][]string
-	Error       string
+	Query         string
+	SQL           string
+	Explanation   string
+	Columns       []string
+	Results       [][]string
+	FormattedText string
+	Error         string
 }
 
 // Service handles NL→SQL query processing.
@@ -26,6 +27,7 @@ type Service struct {
 	readDB     *sql.DB
 	schema     string
 	timeout    time.Duration
+	logger     *QueryLogger
 }
 
 // NewService creates a new NL→SQL service.
@@ -38,28 +40,38 @@ func NewService(openRouter *adapters.OpenRouterClient, readDB *sql.DB, schema st
 	}
 }
 
+// SetLogger attaches a QueryLogger to the service. Nil-safe: if not set, logging is skipped.
+func (s *Service) SetLogger(logger *QueryLogger) {
+	s.logger = logger
+}
+
 // ProcessQuery processes a natural language query end-to-end.
 func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResult {
+	start := time.Now()
 	result := &ChatResult{Query: userQuery}
 
 	if err := ValidateUserInput(userQuery); err != nil {
 		result.Error = err.Error()
+		s.logQuery(ctx, userQuery, "", false, err.Error(), time.Since(start))
 		return result
 	}
 
 	nlResp, err := s.openRouter.GenerateSQL(ctx, userQuery, s.buildSystemPrompt())
 	if err != nil {
 		result.Error = fmt.Sprintf("Error al procesar: %v", err)
+		s.logQuery(ctx, userQuery, "", false, result.Error, time.Since(start))
 		return result
 	}
 	if nlResp.Error != nil {
 		result.Error = *nlResp.Error
 		result.Explanation = nlResp.Explanation
+		s.logQuery(ctx, userQuery, "", false, result.Error, time.Since(start))
 		return result
 	}
 	if nlResp.SQL == nil {
 		result.Error = "No se pudo generar SQL"
 		result.Explanation = nlResp.Explanation
+		s.logQuery(ctx, userQuery, "", false, result.Error, time.Since(start))
 		return result
 	}
 
@@ -69,6 +81,7 @@ func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResul
 
 	if err := ValidateSQL(generatedSQL); err != nil {
 		result.Error = fmt.Sprintf("Consulta insegura: %v", err)
+		s.logQuery(ctx, userQuery, generatedSQL, false, result.Error, time.Since(start))
 		return result
 	}
 
@@ -82,12 +95,45 @@ func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResul
 	columns, rows, err := s.executeQuery(queryCtx, generatedSQL)
 	if err != nil {
 		result.Error = fmt.Sprintf("Error ejecutando: %v", err)
+		s.logQuery(ctx, userQuery, generatedSQL, false, result.Error, time.Since(start))
 		return result
 	}
 	result.Columns = columns
 	result.Results = rows
+	result.FormattedText = FormatResults(columns, rows)
+
+	s.logQuery(ctx, userQuery, generatedSQL, true, "", time.Since(start))
 	return result
 }
+
+// logQuery writes an audit entry via the logger. It is nil-safe.
+func (s *Service) logQuery(ctx context.Context, question, generatedSQL string, success bool, errMsg string, elapsed time.Duration) {
+	if s.logger == nil {
+		return
+	}
+
+	entry := QueryLogEntry{
+		Question:        question,
+		GeneratedSQL:    generatedSQL,
+		Success:         success,
+		ErrorMessage:    errMsg,
+		ExecutionTimeMs: elapsed.Milliseconds(),
+	}
+
+	// Extract user_id from context if available.
+	if userID, ok := ctx.Value(ContextKeyUserID).(int64); ok {
+		entry.UserID = &userID
+	}
+
+	// Logging is best-effort; don't fail the request on log errors.
+	_ = s.logger.Log(ctx, entry)
+}
+
+// contextKey is a type for context keys in this package.
+type contextKey string
+
+// ContextKeyUserID is the context key for the user ID.
+const ContextKeyUserID = contextKey("user_id")
 
 func (s *Service) executeQuery(ctx context.Context, sqlQuery string) ([]string, [][]string, error) {
 	rows, err := s.readDB.QueryContext(ctx, sqlQuery)

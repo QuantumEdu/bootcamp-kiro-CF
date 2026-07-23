@@ -53,7 +53,21 @@
 
 ---
 
-## Diapositiva 5: Cómo empecé — Análisis previo
+## Diapositiva 5: Onboarding — De 3 proyectos a 1
+
+**Título:** El proceso de selección: 3 ideas → 1 MVP  
+**Descripción:**
+- En el bootcamp se presentaron 3 propuestas de proyecto a evaluar
+- Se analizó viabilidad técnica, impacto, e innovación de cada una
+- Se eligió el POS AI-First por combinar impacto real en PYMES + diferenciador técnico (NL→SQL)
+- Pre-análisis documentado: `bootcamp-analysis.md`, `Deeper-analysis.md`, `constitution.md`
+
+**Comentarios para el presentador:** "No fue solo 'tengo una idea'. Evaluamos 3 opciones con criterios claros. Este proceso de decisión es parte del valor de trabajar con Kiro — todo queda documentado."  
+**Propuesta de diseño:** Tabla comparativa de 3 proyectos con checkmarks indicando por qué ganó el POS AI-First.
+
+---
+
+## Diapositiva 6: Cómo empecé — Análisis previo
 
 **Título:** Fase 0: Investigación y análisis  
 **Descripción:**
@@ -67,7 +81,7 @@
 
 ---
 
-## Diapositiva 6: Kiro como copiloto de desarrollo
+## Diapositiva 7: Kiro como copiloto de desarrollo
 
 **Título:** El poder de Kiro: Specs, Steering, Powers y Hooks  
 **Descripción:**
@@ -81,7 +95,7 @@
 
 ---
 
-## Diapositiva 7: Steering — Las reglas del proyecto
+## Diapositiva 8: Steering — Las reglas del proyecto
 
 **Título:** Steering files: tu proyecto siempre consistente  
 **Descripción:**
@@ -97,7 +111,7 @@
 
 ---
 
-## Diapositiva 8: Powers — Long-Term Memory
+## Diapositiva 9: Powers — Long-Term Memory
 
 **Título:** Power: Long-Term Memory — Tu proyecto nunca olvida  
 **Descripción:**
@@ -112,7 +126,7 @@
 
 ---
 
-## Diapositiva 9: Sincronización y GitHub
+## Diapositiva 10: Sincronización y GitHub
 
 **Título:** Sync + GitHub: Trabajo en cualquier dispositivo  
 **Descripción:**
@@ -129,7 +143,22 @@
 
 ---
 
-## Diapositiva 10: Arquitectura técnica
+## Diapositiva 11: Multiplataforma — Kiro Desktop, Web y Mobile
+
+**Título:** Desarrollo continuo desde cualquier dispositivo  
+**Descripción:**
+- **Kiro Desktop (VS Code):** Desarrollo principal con terminal, debugging, extensiones
+- **Kiro Web (app.kiro.dev):** Acceso desde cualquier navegador, mismo workspace
+- **Kiro Mobile:** Revisión de código, aprobación de PRs, consulta rápida desde el celular
+- **Sync Files:** Sincronización bidireccional entre todos los entornos
+- Flujo real: escribí código en desktop, revisé issues en mobile, continué en web desde otro PC
+
+**Comentarios para el presentador:** "No estuve amarrado a una sola máquina. Pude avanzar desde el café con la web, revisar desde el teléfono, y retomar en el desktop sin perder nada."  
+**Propuesta de diseño:** 3 dispositivos (laptop, browser, phone) conectados por flechas de sync. Screenshots reales de cada uno.
+
+---
+
+## Diapositiva 12: Arquitectura técnica
 
 **Título:** Arquitectura: Hexagonal + AI Layer  
 **Descripción:**
@@ -152,7 +181,7 @@
 
 ---
 
-## Diapositiva 11: Seguridad NL→SQL (5 capas)
+## Diapositiva 13: Seguridad NL→SQL (5 capas)
 
 **Título:** 5 capas de seguridad para queries generadas por AI  
 **Descripción:**
@@ -167,7 +196,7 @@
 
 ---
 
-## Diapositiva 12: Demo en vivo
+## Diapositiva 14: Demo en vivo
 
 **Título:** Demo: Pregúntale a tu POS  
 **Descripción:**
@@ -182,7 +211,7 @@
 
 ---
 
-## Diapositiva 13: Resultados y métricas
+## Diapositiva 15: Resultados y métricas
 
 **Título:** Lo que logramos en 5 días  
 **Descripción:**
@@ -202,7 +231,7 @@
 
 ---
 
-## Diapositiva 14: Lecciones aprendidas
+## Diapositiva 16: Lecciones aprendidas
 
 **Título:** Lo que aprendí  
 **Descripción:**
@@ -217,7 +246,25 @@
 
 ---
 
-## Diapositiva 15: Próximos pasos
+## Diapositiva 17: Deploy en AWS — Plan de producción
+
+**Título:** De MVP local a producción en AWS  
+**Descripción:**
+- **Compute:** AWS App Runner o ECS Fargate (Go binary en container, auto-scaling)
+- **Base de datos:** Amazon RDS PostgreSQL (migración de SQLite, backups automáticos)
+- **AI:** Amazon Bedrock (Claude 3 Haiku) reemplaza OpenRouter — latencia <2s, sin API key externa
+- **Storage:** S3 para assets estáticos + CloudFront CDN
+- **Secrets:** AWS Secrets Manager para API keys y configs
+- **CI/CD:** GitHub Actions → ECR → App Runner (deploy automático en push a main)
+- **Monitoring:** CloudWatch Logs + X-Ray para tracing del pipeline NL→SQL
+- **Costo estimado:** ~$25-40/mes para una tienda (Fargate spot + RDS t4g.micro + Bedrock pay-per-use)
+
+**Comentarios para el presentador:** "El MVP corre local con SQLite. Para producción, el cambio es mínimo gracias a la arquitectura hexagonal — solo cambiamos los adaptadores, no la lógica."  
+**Propuesta de diseño:** Diagrama AWS con los servicios conectados. Flecha mostrando qué cambia (adaptadores) vs. qué se mantiene (dominio/application).
+
+---
+
+## Diapositiva 18: Próximos pasos
 
 **Título:** Hacia dónde va el proyecto  
 **Descripción:**
@@ -232,7 +279,7 @@
 
 ---
 
-## Diapositiva 16: Cierre
+## Diapositiva 19: Cierre
 
 **Título:** Gracias — ¿Preguntas?  
 **Descripción:** Links al repo, QR code, contacto.  

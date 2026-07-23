@@ -3,61 +3,109 @@ package handlers
 import (
 	"html/template"
 	"net/http"
-	"time"
+	"strconv"
 
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/use_cases"
+	"github.com/alexedwards/scs/v2"
 )
 
-// AuthHandler handles login/logout.
+// AuthHandler handles login, logout, and session management.
 type AuthHandler struct {
-	auth *middleware.AuthMiddleware
-	tmpl *template.Template
+	authUC   *use_cases.AuthenticateUser
+	tmpl     *template.Template
+	sessions *scs.SessionManager
 }
 
-// NewAuthHandler creates a new auth handler.
-func NewAuthHandler(auth *middleware.AuthMiddleware, tmpl *template.Template) *AuthHandler {
-	return &AuthHandler{auth: auth, tmpl: tmpl}
+// NewAuthHandler creates a new AuthHandler.
+func NewAuthHandler(authUC *use_cases.AuthenticateUser, tmpl *template.Template, sessions *scs.SessionManager) *AuthHandler {
+	return &AuthHandler{
+		authUC:   authUC,
+		tmpl:     tmpl,
+		sessions: sessions,
+	}
 }
 
-// LoginPage renders the login page.
+// LoginPage renders the login form (GET /login).
 func (h *AuthHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	h.tmpl.ExecuteTemplate(w, "login.html", map[string]interface{}{"Error": ""})
+	h.renderLogin(w, "")
 }
 
-// Login processes the PIN form.
+// Login handles PIN authentication (POST /login).
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		h.renderLogin(w, "Error al procesar el formulario")
+		return
+	}
+
 	pin := r.FormValue("pin")
 	if pin == "" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		h.tmpl.ExecuteTemplate(w, "login.html", map[string]interface{}{"Error": "Ingresa tu PIN"})
+		h.renderLogin(w, "Ingrese su PIN")
 		return
 	}
 
-	clientIP := r.Header.Get("X-Forwarded-For")
-	if clientIP == "" {
-		clientIP = r.RemoteAddr
-	}
-
-	token, err := h.auth.CheckPIN(pin, clientIP)
+	user, err := h.authUC.Execute(r.Context(), pin)
 	if err != nil {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		h.tmpl.ExecuteTemplate(w, "login.html", map[string]interface{}{"Error": err.Error()})
+		msg := "PIN incorrecto"
+		if err == use_cases.ErrAuthAccountLocked {
+			msg = "Cuenta bloqueada temporalmente. Intente más tarde."
+		}
+		h.renderLogin(w, msg)
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name: "pos_session", Value: token, Path: "/",
-		HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 86400,
-	})
+	// Store user info in session.
+	h.sessions.Put(r.Context(), "user_id", strconv.FormatInt(user.ID, 10))
+	h.sessions.Put(r.Context(), "user_name", user.Nombre)
+	h.sessions.Put(r.Context(), "user_role", user.Rol)
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Logout clears the session.
+// Logout destroys the session and redirects to login (POST /logout).
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name: "pos_session", Value: "", Path: "/",
-		HttpOnly: true, Expires: time.Unix(0, 0), MaxAge: -1,
-	})
+	_ = h.sessions.Destroy(r.Context())
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+// renderLogin renders the login page with an optional error message.
+func (h *AuthHandler) renderLogin(w http.ResponseWriter, errMsg string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	data := map[string]interface{}{
+		"PageTitle": "Iniciar Sesión",
+		"Error":     errMsg,
+	}
+
+	// Try the login template; fall back to inline HTML if not found.
+	if t := h.tmpl.Lookup("login.html"); t != nil {
+		if err := t.Execute(w, data); err != nil {
+			http.Error(w, "Error de template", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Fallback: minimal login form when template is not yet created.
+	w.WriteHeader(http.StatusOK)
+	fallback := `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Login - POS</title></head>
+<body style="display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:sans-serif;">
+<form method="POST" action="/login" style="text-align:center;">
+<h1>POS AI-First</h1>
+<p>Ingrese su PIN para acceder</p>
+{{if .Error}}<p style="color:red;">{{.Error}}</p>{{end}}
+<input type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="PIN" autofocus
+  style="font-size:2rem;width:200px;text-align:center;padding:10px;margin:10px 0;"/>
+<br/><button type="submit" style="padding:10px 30px;font-size:1rem;cursor:pointer;">Entrar</button>
+</form>
+</body>
+</html>`
+
+	// Parse and execute the fallback template with data.
+	ft, err := template.New("fallback-login").Parse(fallback)
+	if err != nil {
+		http.Error(w, "Error interno", http.StatusInternalServerError)
+		return
+	}
+	_ = ft.Execute(w, data)
 }
