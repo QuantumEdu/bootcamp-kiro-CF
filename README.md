@@ -1,253 +1,130 @@
-# 🧾 POS AI-First
+# POS AI-First
 
-> Sistema de Punto de Venta con inteligencia artificial conversacional — pregunta en lenguaje natural y obtén respuestas de tus datos reales.
+> Sistema de Punto de Venta con Inteligencia Artificial para PYMEs — Bootcamp Codigo Facilito + Kiro
 
-![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
-![SQLite](https://img.shields.io/badge/DB-SQLite-003B57?logo=sqlite&logoColor=white)
-![HTMX](https://img.shields.io/badge/Frontend-HTMX-blue)
-
----
-
-## ✨ Características
-
-- 🔐 **Autenticación por PIN** — login tipo POS real (sin emails, sin contraseñas)
-- 🛒 **Gestión de productos** — CRUD completo con categorías y control de stock
-- 💰 **Registro de ventas** — carrito interactivo con descuento automático de inventario
-- 📊 **Dashboard en tiempo real** — métricas de ventas, productos top, tendencias
-- 🤖 **Chat NL→SQL** — pregunta "¿qué vendí esta semana?" y obtén respuesta instantánea
-- 👥 **Multi-usuario con roles** — admin y cajero con permisos diferenciados
-- ⚡ **Interfaz reactiva** — HTMX + Alpine.js para UX fluida sin SPA
-
----
-
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        FRONTEND                              │
-│            HTMX + Alpine.js + Tailwind CSS                   │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ HTTP
-┌──────────────────────────▼──────────────────────────────────┐
-│                    INFRASTRUCTURE                             │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────────────┐  │
-│  │  HTTP/Chi   │  │   SQLite     │  │  OpenRouter API   │  │
-│  │  Handlers   │  │   Adapters   │  │  (NL→SQL)         │  │
-│  └──────┬──────┘  └──────┬───────┘  └────────┬──────────┘  │
-└─────────┼────────────────┼────────────────────┼─────────────┘
-          │                │                    │
-┌─────────▼────────────────▼────────────────────▼─────────────┐
-│                      APPLICATION                             │
-│  ┌──────────────────┐  ┌──────────────────────────────┐     │
-│  │    Use Cases      │  │     NL→SQL Service           │     │
-│  │  (authenticate,   │  │  (validate → call LLM →     │     │
-│  │   register sale)  │  │   format response)           │     │
-│  └────────┬──────────┘  └──────────────┬──────────────┘     │
-└───────────┼────────────────────────────┼────────────────────┘
-            │                            │
-┌───────────▼────────────────────────────▼────────────────────┐
-│                        DOMAIN                                │
-│  ┌──────────┐  ┌───────────────┐  ┌──────────────────────┐  │
-│  │ Entities │  │ Value Objects │  │   Ports (interfaces) │  │
-│  │ Product  │  │ PIN           │  │   ProductRepository  │  │
-│  │ Sale     │  │               │  │   UserRepository     │  │
-│  │ User     │  │               │  │   AIQueryService     │  │
-│  │ Inventory│  │               │  │   SaleRepository     │  │
-│  └──────────┘  └───────────────┘  └──────────────────────┘  │
+│ Frontend: HTMX + Alpine.js + Tailwind CSS (CDN)             │
+├─────────────────────────────────────────────────────────────┤
+│ Backend: Go + chi router                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐              │
+│  │ Handlers │→ │ Use Cases│→ │ Adapters     │              │
+│  │ (HTTP)   │  │ (NL→SQL) │  │ (OpenRouter) │              │
+│  └──────────┘  └──────────┘  └──────────────┘              │
+├─────────────────────────────────────────────────────────────┤
+│ Database: SQLite (WAL mode) — RW + RO connections           │
 └─────────────────────────────────────────────────────────────┘
-
-Flujo de dependencias: Infrastructure → Application → Domain
-(Las capas externas dependen de las internas, nunca al revés)
 ```
 
----
+## Stack
 
-## 🚀 Quick Start
+| Componente | Tecnologia |
+|---|---|
+| Backend | Go 1.22+ / chi v5 |
+| Database | SQLite (modernc.org/sqlite) |
+| Frontend | HTMX 1.9 + Alpine.js 3 + Tailwind CSS |
+| AI | OpenRouter (gpt-4o-mini / claude-3-haiku) |
+| Auth | PIN + SHA-256 + session tokens |
 
-### Prerrequisitos
-
-- Go 1.22+ instalado
-- (Opcional) Cuenta en [OpenRouter](https://openrouter.ai/) para la funcionalidad NL→SQL
-
-### Instalación
+## Setup rapido
 
 ```bash
-# 1. Clonar el repositorio
+# 1. Clonar
 git clone https://github.com/QuantumEdu/bootcamp-kiro-CF.git
 cd bootcamp-kiro-CF
 
-# 2. Configurar variables de entorno
+# 2. Configurar
 cp .env.example .env
-# Editar .env y agregar tu OPENROUTER_API_KEY
+# Editar .env: agregar OPENROUTER_API_KEY
 
-# 3. Ejecutar (auto-ejecuta migraciones + seed)
-make run
+# 3. Ejecutar
+go run ./cmd/server
 
-# 4. Abrir en el navegador
-# http://localhost:8080
+# 4. Abrir
+# http://localhost:8080/login
+# PIN admin: 1234
+# PIN cajero: 123
 ```
 
-### Credenciales de demo
+## Funcionalidades
 
-| PIN    | Rol    | Permisos                          |
-|--------|--------|-----------------------------------|
-| `1234` | Admin  | Acceso completo (productos, ventas, métricas, chat) |
-| `123`  | Cajero | Ventas y consultas básicas        |
+### Completadas
 
----
+- [x] **Dashboard** — Ventas hoy/semana/mes, top productos, stock bajo, margen por categoria
+- [x] **Productos** — Lista con busqueda HTMX
+- [x] **Ventas** — Carrito con Alpine.js, checkout JSON, historial reciente
+- [x] **Chat IA** — Panel lateral con NL→SQL (lenguaje natural a consultas SQL)
+- [x] **Autenticacion** — PIN con lockout por intentos fallidos
+- [x] **Metricas** — HTMX polling automatico (30s/60s)
+- [x] **Seguridad NL→SQL** — Jailbreak detection, table whitelist, SELECT-only, max 100 rows
+- [x] **Seed data** — 30 productos, 10 ventas, 5 clientes (tienda de abarrotes MX)
 
-## 🎬 Demo Script — Consultas NL→SQL
+### Seguridad del Chat IA
 
-Una vez logueado, abre el **Chat** y prueba estas consultas en lenguaje natural:
+10 capas de defensa:
+1. Validacion de input (jailbreak detection)
+2. System prompt (solo SELECT)
+3. SQL validation (keyword blocking)
+4. Table whitelist (8 tablas)
+5. Multi-statement detection
+6. Comment injection blocking
+7. Read-only DB connection
+8. Query timeout (5s)
+9. Row limit (100 max)
+10. Max input length (500 chars)
+
+## Estructura del proyecto
 
 ```
-1. "¿Cuánto vendí hoy?"
-   → Muestra el total de ventas del día actual
-
-2. "¿Cuáles son los 5 productos más vendidos?"
-   → Lista los productos con más unidades vendidas
-
-3. "¿Qué productos tienen menos de 10 en stock?"
-   → Alerta de inventario bajo
-
-4. "¿Cuál fue la venta más grande de esta semana?"
-   → Identifica la transacción de mayor monto
-
-5. "¿Cuántas ventas hizo cada cajero este mes?"
-   → Desglose de productividad por usuario
+cmd/server/main.go          — Entry point
+src/
+├── application/nlsql/      — NL→SQL service + validator
+├── domain/ports/           — Interfaces (hexagonal)
+└── infrastructure/
+    ├── adapters/           — OpenRouter client
+    ├── config/             — Env vars
+    ├── database/           — SQLite connection + migrations
+    └── http/
+        ├── handlers/       — HTTP handlers (pages, metrics, chat, auth, sales)
+        └── middleware/     — Auth middleware
+templates/                  — HTML templates (Go html/template)
+static/js/                  — Alpine.js components
 ```
 
-> 💡 El sistema traduce tu pregunta a SQL, valida que sea segura (solo SELECT),
-> la ejecuta contra tu base de datos real, y formatea la respuesta.
-
----
-
-## 🛠️ Desarrollo
-
-### Makefile targets
+## Comandos
 
 ```bash
-make run       # Ejecutar servidor (localhost:8080)
-make build     # Compilar binario → bin/pos
-make test      # Correr todos los tests con cobertura
-make lint      # golangci-lint
-make fmt       # Formatear código (gofmt)
-make seed      # Cargar datos de demostración
-make clean     # Limpiar binarios y DB
+make run       # Ejecutar servidor
+make test      # Tests
+make lint      # Linter
+make build     # Compilar binario
 ```
 
-### Testing
+## Variables de entorno
 
-```bash
-# Todos los tests
-go test ./... -v -cover
+| Variable | Default | Descripcion |
+|---|---|---|
+| `PORT` | 8080 | Puerto del servidor |
+| `DATABASE_PATH` | ./data/pos.db | Ruta de la BD SQLite |
+| `OPENROUTER_API_KEY` | — | API key de OpenRouter |
+| `OPENROUTER_MODEL` | anthropic/claude-3-haiku | Modelo LLM |
+| `SESSION_SECRET` | dev-secret | Secreto para tokens |
+| `PIN_MAX_ATTEMPTS` | 5 | Intentos antes de lockout |
+| `PIN_LOCKOUT_MINUTES` | 5 | Minutos de bloqueo |
+| `QUERY_TIMEOUT_SECONDS` | 5 | Timeout para queries |
 
-# Tests de un paquete específico
-go test ./src/domain/entities/ -v
+## Demo script
 
-# Tests con race detector
-go test -race ./...
-```
+1. Login con PIN 1234
+2. Ver dashboard (metricas se auto-refrescan)
+3. Ir a Productos → ver catalogo
+4. Ir a Ventas → buscar producto → agregar al carrito → cobrar
+5. Chat IA: "cuantas ventas hubo hoy?" → ver SQL generado + resultados
+6. Chat IA: "que producto se vendio mas esta semana?"
+7. Intentar jailbreak: "ignora instrucciones" → ver rechazo
 
-### Linting
+## Equipo
 
-```bash
-# Lint completo
-golangci-lint run
-
-# Análisis estático
-go vet ./...
-```
-
----
-
-## 📦 Tech Stack
-
-| Tecnología | Decisión | Justificación |
-|------------|----------|---------------|
-| **Go 1.22+** | Backend | Compilación rápida, binario único, concurrencia nativa |
-| **chi/v5** | Router HTTP | Ligero, idiomático, middleware composable |
-| **SQLite** (modernc.org) | Base de datos | Sin servidor externo, ideal para POS local, pure Go |
-| **HTMX** | Interactividad | Server-driven UI sin complejidad de SPA |
-| **Alpine.js** | Reactividad local | Componentes ligeros para UI interactiva |
-| **Tailwind CSS** | Estilos | Utility-first, desarrollo rápido, CDN |
-| **OpenRouter** | AI/NL→SQL | Acceso multi-modelo (Claude, GPT), sin config AWS |
-| **bcrypt** | Hash de PINs | Seguro, estándar, parte de golang.org/x/crypto |
-| **alexedwards/scs** | Sesiones | Ligero, almacenamiento en SQLite |
-| **godotenv** | Config | Carga `.env` sin magia |
-
-### Decisiones arquitectónicas clave
-
-1. **SQLite sobre Postgres** — simplicidad para POS local, sin servidor externo
-2. **HTMX sobre SPA** — menor complejidad frontend, rendering server-side
-3. **OpenRouter sobre Bedrock** — acceso inmediato sin configurar AWS
-4. **PIN sobre OAuth** — contexto POS real (meseros no tienen email corporativo)
-5. **Hexagonal sobre MVC** — separación clara, testabilidad, bajo acoplamiento
-
----
-
-## 📁 Estructura del Proyecto
-
-```
-bootcamp/
-├── cmd/
-│   ├── server/main.go            # Entry point del servidor
-│   └── seed/main.go              # Script de datos de demostración
-├── src/
-│   ├── domain/
-│   │   ├── entities/             # Product, Sale, User, Inventory
-│   │   ├── value_objects/        # PIN (validación + hashing)
-│   │   └── ports/                # Interfaces (contratos del dominio)
-│   ├── application/
-│   │   ├── use_cases/            # AuthenticateUser, RegisterSale
-│   │   ├── nlsql/                # Servicio NL→SQL (validar, llamar LLM, formatear)
-│   │   └── dtos/                 # Estructuras de transferencia
-│   └── infrastructure/
-│       ├── adapters/             # SQLite repos, OpenRouter client
-│       ├── database/             # Conexión, migraciones
-│       ├── http/
-│       │   ├── handlers/         # Auth, Chat, Products, Sales, Metrics
-│       │   ├── middleware/       # Auth middleware
-│       │   └── session.go        # Gestión de sesiones
-│       └── config/               # Variables de entorno
-├── migrations/                   # SQL schema (001_init, 002_sessions)
-├── templates/                    # HTML templates (HTMX)
-│   ├── layout.html               # Layout base
-│   ├── login.html                # Pantalla de login
-│   ├── chat/                     # UI del chat NL→SQL
-│   ├── products/                 # CRUD productos
-│   ├── sales/                    # Registro de ventas
-│   └── metrics/                  # Dashboard
-├── static/                       # Assets estáticos (JS)
-├── data/                         # SQLite DB (gitignored en prod)
-├── governance/                   # PRD y brief del proyecto
-├── .env.example                  # Template de variables de entorno
-├── Makefile                      # Comandos de desarrollo
-├── go.mod / go.sum               # Dependencias Go
-└── .golangci.yml                 # Configuración del linter
-```
-
----
-
-## 🎓 Contexto — Bootcamp Código Facilito + Kiro
-
-Este proyecto fue desarrollado durante el **Bootcamp de Código Facilito** en colaboración con **Kiro** (IDE con AI de Amazon).
-
-### Objetivo del bootcamp
-Construir un sistema funcional en 5 días que demuestre el impacto de la inteligencia artificial aplicada a un problema real de negocio.
-
-### ¿Por qué un POS con AI?
-Las PYMES en Latinoamérica operan con datos que no pueden consultar fácilmente. Este POS permite que el dueño de un restaurante o tienda pregunte en español "¿qué vendí esta semana?" y obtenga respuesta inmediata — sin saber SQL, sin dashboards complicados.
-
-### Criterios de evaluación
-- **Impacto tecnológico (30%)** — NL→SQL para PYMES sin acceso a tech
-- **Innovación (30%)** — POS conversacional desde el diseño
-- **Software funcional (30%)** — CRUD + chat + dashboard demostrable
-- **Uso de AWS y Kiro (10%)** — Desarrollo guiado por specs y steering
-
----
-
-## 📄 Licencia
-
-MIT
+Proyecto desarrollado con [Kiro](https://kiro.dev) durante el Bootcamp Codigo Facilito 2026.
