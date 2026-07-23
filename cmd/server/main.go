@@ -9,10 +9,12 @@ import (
 	"path/filepath"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/nlsql"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/use_cases"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/config"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/database"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/handlers"
+	infrahttp "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http"
 	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -42,19 +44,37 @@ func main() {
 	nlsqlService := nlsql.NewService(openRouter, db.RO, getSchema(), cfg.QueryTimeoutSeconds)
 	nlsqlService.SetLogger(nlsql.NewQueryLogger(db.RW))
 
+	// Session manager
+	sessionManager := infrahttp.NewSessionManager(db.RW)
+
+	// Repositories
+	userRepo := adapters.NewSQLiteUserRepository(db.RW)
+	productRepo := adapters.NewSQLiteProductRepository(db.RW)
+	saleRepo := adapters.NewSQLiteSaleRepository(db.RW)
+	inventoryRepo := adapters.NewSQLiteInventoryRepository(db.RW)
+
+	// Use Cases
+	authUC := use_cases.NewAuthenticateUser(userRepo)
+	createProductUC := use_cases.NewCreateProduct(productRepo)
+	updateProductUC := use_cases.NewUpdateProduct(productRepo)
+	listProductsUC := use_cases.NewListProducts(productRepo)
+	deactivateProductUC := use_cases.NewDeactivateProduct(productRepo)
+	registerSaleUC := use_cases.NewRegisterSale(saleRepo, productRepo, inventoryRepo)
+
 	// Handlers
 	pageHandler := handlers.NewPageHandler(tmpl)
 	chatHandler := handlers.NewChatHandler(nlsqlService, tmpl)
 	metricsHandler := handlers.NewMetricsHandler(db.RW)
-	saleHandler := handlers.NewSaleHandler(db.RW)
-	authMW := mw.NewAuthMiddleware(cfg.SessionSecret, cfg.PINMaxAttempts, cfg.PINLockoutMinutes)
-	authHandler := handlers.NewAuthHandler(authMW, tmpl)
+	authHandler := handlers.NewAuthHandler(authUC, tmpl, sessionManager)
+	productHandler := handlers.NewProductHandler(createProductUC, updateProductUC, listProductsUC, deactivateProductUC, productRepo, tmpl)
+	saleHandler := handlers.NewSaleHandler(registerSaleUC, tmpl, sessionManager)
 
 	// Router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Compress(5))
+	r.Use(sessionManager.LoadAndSave)
 
 	// Static files
 	fileServer := http.FileServer(http.Dir("static"))
@@ -72,18 +92,18 @@ func main() {
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
-		r.Use(authMW.RequireAuth)
+		r.Use(mw.RequireAuth(sessionManager))
 
 		// Pages
 		r.Get("/", pageHandler.Dashboard)
 		r.Get("/productos", pageHandler.Products)
 		r.Get("/ventas", pageHandler.Sales)
 		r.Get("/metricas", pageHandler.Metrics)
-		r.Get("/logout", authHandler.Logout)
+		r.Post("/logout", authHandler.Logout)
 
 		// API: Sales
-		r.Post("/api/ventas", saleHandler.Create)
-		r.Get("/api/ventas/recientes", saleHandler.Recent)
+		r.Post("/api/ventas", saleHandler.CompleteSale)
+		r.Get("/api/ventas/recientes", metricsHandler.VentasRecientes)
 
 		// API: Metrics (HTMX fragments)
 		r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
@@ -97,6 +117,11 @@ func main() {
 		// API: Products
 		r.Get("/api/productos", metricsHandler.ProductosHTMX)
 		r.Get("/api/productos/buscar", metricsHandler.ProductosBuscar)
+		r.Get("/productos/new", productHandler.CreateForm)
+		r.Post("/productos", productHandler.Create)
+		r.Get("/productos/{id}/edit", productHandler.EditForm)
+		r.Post("/productos/{id}", productHandler.Edit)
+		r.Delete("/productos/{id}", productHandler.Deactivate)
 
 		// API: Chat NL→SQL
 		r.Post("/api/chat", chatHandler.HandleChat)
