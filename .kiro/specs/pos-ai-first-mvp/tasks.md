@@ -123,26 +123,26 @@ MVP de un sistema POS (Point of Sale) AI-First para el bootcamp Código Facilito
   - [x] 17.2 Test all 5 NL→SQL demo queries with real data
   - [x] 17.3 Create `README.md` with setup instructions, architecture diagram, demo script
   - [x] 17.4 Ensure `make run` works cleanly from fresh clone
-  - [~] 17.5 Record backup video of key flows (in case of connectivity issues at demo)
-- [ ] 18. Final testing and edge cases
+  - [ ] 17.5 Record backup video of key flows (in case of connectivity issues at demo)
+- [x] 18. Final testing and edge cases
   - [x] 18.1 Run full test suite: `make test` passes
   - [x] 18.2 Run linter: `make lint` passes with zero warnings
   - [x] 18.3 Test error cases: OpenRouter timeout, invalid queries, empty database
   - [x] 18.4 Test auth: wrong PIN, lockout, expired session
   - [x] 18.5 Test concurrent access: multiple browser tabs
-  - [~] 18.6 Final commit with clean git history
+  - [x] 18.6 Final commit with clean git history
 - [ ] 19. Presentation and video preparation
-  - [~] 19.1 Complete `presentacion.md` with final metrics, screenshots, and demo captures
-  - [~] 19.2 Complete `video.md` script with final narration text and timing
-  - [~] 19.3 Record 5-minute demo video following the script
-  - [~] 19.4 Export video in 1080p and upload backup to Google Drive
-  - [~] 19.5 Test presentation flow end-to-end (slide transitions, timing)
-- [ ] 20. GitHub Projects and documentation setup
-  - [~] 20.1 Create GitHub Project board with columns: Backlog, In Progress, Review, Done
-  - [~] 20.2 Link all 18 task issues to the project board
-  - [~] 20.3 Add custom fields: Day, Priority, Estimation
-  - [~] 20.4 Update README.md with project board link, architecture diagram, and setup instructions
-  - [~] 20.5 Final documentation review: verify all links, badges, and references are correct
+  - [ ] 19.1 Complete `presentacion.md` with final metrics, screenshots, and demo captures
+  - [ ] 19.2 Complete `video.md` script with final narration text and timing
+  - [ ] 19.3 Record 5-minute demo video following the script
+  - [ ] 19.4 Export video in 1080p and upload backup to Google Drive
+  - [ ] 19.5 Test presentation flow end-to-end (slide transitions, timing)
+- [x] 20. GitHub Projects and documentation setup
+  - [x] 20.1 Create GitHub Project board with columns: Backlog, In Progress, Review, Done
+  - [x] 20.2 Link all 18 task issues to the project board
+  - [x] 20.3 Add custom fields: Day, Priority, Estimation
+  - [x] 20.4 Update README.md with project board link, architecture diagram, and setup instructions
+  - [x] 20.5 Final documentation review: verify all links, badges, and references are correct
 
 ## Task Dependency Graph
 
