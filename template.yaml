@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: POS AI-First Lambda Deployment
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        APP_ENV: lambda
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+  SecretDbArn:
+    Type: String
+    Description: ARN of the DB connection secret
+  SecretSessionArn:
+    Type: String
+    Description: ARN of the session secret
+  SecretAiArn:
+    Type: String
+    Description: ARN of the AI config secret
+  VpcSubnetIds:
+    Type: CommaDelimitedList
+    Description: Private subnet IDs for Lambda VPC
+  VpcSecurityGroupIds:
+    Type: CommaDelimitedList
+    Description: Security group IDs for Lambda VPC
+
+Resources:
+  PosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageUri: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/pos-ai-first:latest"
+      Environment:
+        Variables:
+          SECRET_DB_ARN: !Ref SecretDbArn
+          SECRET_SESSION_ARN: !Ref SecretSessionArn
+          SECRET_AI_ARN: !Ref SecretAiArn
+      VpcConfig:
+        SubnetIds: !Ref VpcSubnetIds
+        SecurityGroupIds: !Ref VpcSecurityGroupIds
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Ref SecretDbArn
+                - !Ref SecretSessionArn
+                - !Ref SecretAiArn
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        CatchAll:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PosHttpApi
+            Path: /{proxy+}
+            Method: ANY
+        Root:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PosHttpApi
+            Path: /
+            Method: ANY
+
+  PosHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+
+  StaticAssetsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "pos-static-${Environment}"
+
+  StaticBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StaticAssetsBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${StaticAssetsBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Origins:
+          - Id: S3Static
+            DomainName: !GetAtt StaticAssetsBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !Ref CloudFrontOAC
+        DefaultCacheBehavior:
+          TargetOriginId: S3Static
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6"
+
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "pos-static-oac-${Environment}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${PosHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt PosFunction.Arn
+  StaticBucketName:
+    Description: S3 bucket for static assets
+    Value: !Ref StaticAssetsBucket
+  CloudFrontDomain:
+    Description: CloudFront distribution domain
+    Value: !GetAtt CloudFrontDistribution.DomainName
