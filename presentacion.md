@@ -239,22 +239,22 @@ Admin → Form → AES-GCM Encrypt (SHA-256 de SESSION_SECRET) → SQLite config
 
 **Título:** Lo que logramos en 5 días  
 **Descripción:**
-- 20+ tareas planificadas con dependency graph (DAG por waves)
-- ~118 sub-tareas detalladas
+- 3 specs creados (pos-ai-first, ui-fixes, aws-deploy)
+- 100+ tareas ejecutadas en waves paralelas (5 simultáneas)
 - 5 capas de seguridad NL→SQL
-- Arquitectura hexagonal limpia con puertos e interfaces
-- Tests en dominio ≥90%, table-driven + property tests
+- Arquitectura hexagonal: dominio INTACTO al migrar a AWS
+- Tests en dominio: 100%, application: 60%+, middleware: 86%
 - Zero lint warnings
 - Chat AI funcional con respuestas en español
 - CRUD completo: Productos, Ventas, Clientes
-- Panel admin con cifrado AES-GCM para API keys
-- Ejecución paralela de tasks por waves (5 tasks simultáneas)
-- GitHub Project Board con Kanban automatizado
-- Hook de auto-documentación de prompts
-- LTM Power para persistencia entre sesiones
+- Panel admin con cifrado AES-GCM
+- Deploy a AWS Lambda: $0/mes con free tier
+- Cold start: 4.4s → warm: 1-3ms
+- CI/CD: push a main → auto-deploy en ~4 min
+- 7 adaptadores PostgreSQL + Bedrock adapter (mismas interfaces)
 
-**Comentarios para el presentador:** Números concretos. Mostrar la barra de progreso del milestone y el Project Board. Enfatizar la ejecución paralela: "5 tareas al mismo tiempo, respetando dependencias."  
-**Propuesta de diseño:** Grid de métricas con iconos y números grandes. Estilo dashboard.
+**Comentarios para el presentador:** "100+ tareas, 3 specs, deploy a AWS — todo sin salir de Kiro. El agente ejecutó 5 tareas en paralelo respetando dependencias. El deploy fue automático: push → tests → build → deploy → health check."  
+**Propuesta de diseño:** Grid de métricas con números grandes. Highlight en $0/mes y en 1-3ms warm.
 
 ---
 

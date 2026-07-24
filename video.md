@@ -113,18 +113,18 @@
 
 ## Sección 6: Cierre (4:30 – 5:00)
 
-**Visual:** Resumen de métricas + pantalla AWS + pantalla final con QR.
+**Visual:** Resumen de métricas + pantalla AWS health check + pantalla final con QR.
 
 **Narración:**
-> "En 5 días: 3 specs creados, 100+ tareas ejecutadas en waves paralelas, arquitectura hexagonal limpia, tests al 90%, zero lint warnings, chat AI en español, CRUD completo, y la migración a AWS lista para dar deploy."
+> "En 5 días: 3 specs, 100+ tareas ejecutadas en paralelo, arquitectura hexagonal limpia, chat AI en español, deploy a AWS Lambda con $0 de costo. Cold start 4.4 segundos, warm 1 milisegundo."
 >
-> "Costo en producción: $0 con free tier. Lambda gratis, RDS gratis 12 meses, Bedrock cubierto por créditos."
+> "La migración de SQLite a PostgreSQL fueron 7 adaptadores nuevos — cero cambios en dominio. Eso es hexagonal en la práctica."
 >
-> "Esto es lo que pasa cuando combinas Kiro + arquitectura hexagonal + un proceso estructurado: velocidad sin sacrificar calidad, y migración sin dolor."
+> "Push a main → tests → build → deploy → health check. Todo automático en 4 minutos."
 >
-> "Gracias."
+> "Kiro + specs + steering + AWS = velocidad sin sacrificar calidad. Gracias."
 
-**Notas de producción:** Terminar con el QR al repo y transición a pantalla de cierre. Mostrar métricas en grid animado.
+**Notas de producción:** Terminar con el QR al repo y transición a pantalla de cierre. Mostrar métricas en grid animado. Screenshot del health check JSON `{"status":"ok","database":"ok"}`.
 
 ---
 

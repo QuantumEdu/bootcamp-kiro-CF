@@ -585,3 +585,59 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 **Flujo diferente:** Siempre incluir el error exacto o screenshot cuando se reporta un bug — "marca error" es ambiguo.
 
 ---
+
+## Prompt 29: "Error de codificación de contenido..."
+
+**Lo que pedí:** Reporté el error exacto del browser: "forma de compresión no válida o admitida".
+**Lo que pasó:** El middleware `middleware.Compress(5)` del chi router comprimía las respuestas con gzip, pero API Gateway + algnhsa no lo manejan correctamente (double-encoding). Fix: condicional `if cfg.AppEnv != "lambda"` para solo comprimir en modo local. También se seedeó la DB PostgreSQL con usuarios y productos, se arregló el CI pipeline (no-fail-on-empty-changeset + force Lambda update), y se verificó que /health y /login responden 200.
+**Versión profesional:**
+> "El browser muestra: 'La página usa una forma de compresión no válida'. Esto sugiere que la Lambda envía gzip pero API Gateway no lo decodifica bien. Deshabilita la compresión en modo Lambda."
+
+**Lo que me faltó pedir:**
+- Nada — el error fue descriptivo y suficiente para diagnosticar
+
+**Flujo diferente:** Este tipo de error (gzip + Lambda) es un gotcha conocido. Debió haberse prevenido en el design doc como una nota de "no usar middleware de compresión con algnhsa".
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 29 |
+| App URL | https://zz637vr6cd.execute-api.us-east-1.amazonaws.com |
+| Deploy status | ✅ FUNCIONAL |
+| Health check | ✅ 200 {"status":"ok","database":"ok"} |
+| Login page | ✅ 200 |
+| Cold start | 4.4s |
+| Warm response | 1-3ms |
+| Costo | $0/mes (free tier) |
+| CI/CD Pipeline | ✅ Auto-deploy en push a main |
+
+---
+
+## Prompt 30: "Perfecto, grandioso, de momento desactivalo..."
+
+**Lo que pedí:** 3 cosas: (1) desactivar el endpoint por seguridad (es prototipo), (2) actualizar presentación, video e insights, (3) commit + push.
+**Lo que pasó:** Se eliminó el stage $default del API Gateway (ahora devuelve 404). La Lambda y RDS siguen existiendo pero no son accesibles públicamente. Se actualizó presentación (métricas finales con datos reales de AWS), video (cierre con stats de cold start y deploy), y se preparó el commit. Para reactivar mañana: `aws apigatewayv2 create-stage --api-id zz637vr6cd --stage-name '$default' --auto-deploy --region us-east-1`
+**Versión profesional:**
+> "1. Desactiva el API Gateway (elimina el stage o deshabilita acceso público). No destruyas la infra — mañana la reactivamos. 2. Actualiza presentación y video con métricas finales (cold start, warm time, $0 costo). 3. Commit + push a main."
+
+**Lo que me faltó pedir:**
+- Nada — prompt bien estructurado con 3 acciones numeradas y contexto (es prototipo, mañana la probamos)
+
+**Flujo diferente:** Perfecto ejemplo de cierre de sesión con acciones claras y priorizadas.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 30 |
+| App URL | https://zz637vr6cd.execute-api.us-east-1.amazonaws.com (DESACTIVADA) |
+| Deploy status | ✅ Funcional pero desactivada (stage eliminado) |
+| Infra AWS | RDS + Lambda + ECR + Secrets (todo vivo, sin acceso público) |
+| Reactivar | `aws apigatewayv2 create-stage --api-id zz637vr6cd --stage-name '$default' --auto-deploy` |
+| Presentación | 22 diapositivas (actualizada) |
+| Video | 5 min guión (actualizado) |
+| CI/CD | ✅ Auto-deploy en push a main |
+| Costo AWS | $0/mes (free tier) |
+
+---
