@@ -34,8 +34,11 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - uses: aws-actions/setup-sam@v2
 
       - uses: aws-actions/amazon-ecr-login@v2
         id: ecr
@@ -60,8 +63,6 @@ jobs:
               SecretDbArn=${{ secrets.SECRET_DB_ARN }} \
               SecretSessionArn=${{ secrets.SECRET_SESSION_ARN }} \
               SecretAiArn=${{ secrets.SECRET_AI_ARN }} \
-              VpcSubnetIds=${{ secrets.VPC_SUBNET_IDS }} \
-              VpcSecurityGroupIds=${{ secrets.VPC_SG_IDS }} \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset
 

@@ -25,12 +25,6 @@ Parameters:
   SecretAiArn:
     Type: String
     Description: ARN of the AI config secret
-  VpcSubnetIds:
-    Type: CommaDelimitedList
-    Description: Private subnet IDs for Lambda VPC
-  VpcSecurityGroupIds:
-    Type: CommaDelimitedList
-    Description: Security group IDs for Lambda VPC
 
 Resources:
   PosFunction:
@@ -43,9 +37,6 @@ Resources:
           SECRET_DB_ARN: !Ref SecretDbArn
           SECRET_SESSION_ARN: !Ref SecretSessionArn
           SECRET_AI_ARN: !Ref SecretAiArn
-      VpcConfig:
-        SubnetIds: !Ref VpcSubnetIds
-        SecurityGroupIds: !Ref VpcSecurityGroupIds
       Policies:
         - Statement:
             - Effect: Allow
