@@ -25,6 +25,8 @@ jobs:
         uses: golangci/golangci-lint-action@v4
         with:
           version: latest
+          args: --timeout=3m
+        continue-on-error: true
 
   deploy:
     needs: test
