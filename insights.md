@@ -544,3 +544,29 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | Código total del proyecto | ~10,000+ líneas Go |
 
 ---
+
+## Prompt 27: "bueno vamos a retomarlo de una vez ejecuta esos pasos"
+
+**Lo que pedí:** Ejecutar todos los pasos de infraestructura AWS para el deploy.
+**Lo que pasó:** Se creó la infra completa: Security Group, RDS PostgreSQL (disponible en ~3 min), ECR repo, 3 Secrets en Secrets Manager, migraciones ejecutadas exitosamente en RDS, IAM user para deploy, 5 GitHub Secrets configurados. Se actualizó template.yaml (sin VPC, free tier) y deploy.yml (access keys en vez de OIDC). Push a main disparó el CI/CD pipeline. Pendiente: Bedrock model access (manual).
+**Versión profesional:**
+> "Ejecuta los pasos de infraestructura AWS del deploy.md: Security Group, RDS, ECR, Secrets Manager, migraciones, GitHub Secrets. Usa la arquitectura 100% free tier (sin NAT Gateway, Lambda sin VPC, RDS pública). Push a main para disparar el CI/CD."
+
+**Lo que me faltó pedir:**
+- Mencionar que Docker Desktop no estaba corriendo (forzó el cambio a GitHub Actions)
+- Indicar si prefería el deploy local o via CI/CD desde el inicio
+
+**Flujo diferente:** Haber verificado los prereqs (Docker running, psql installed) antes de empezar habría evitado los pivots. Un "verifica prereqs y dime qué falta" como primer paso.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 27 |
+| Infra AWS creada | RDS + ECR + Secrets + Security Group + IAM |
+| Migraciones ejecutadas | ✅ 9 tablas en RDS PostgreSQL |
+| GitHub Secrets | 5 configurados |
+| CI/CD Pipeline | 🔄 En progreso (GitHub Actions) |
+| Costo mensual | $0 (free tier) |
+
+---

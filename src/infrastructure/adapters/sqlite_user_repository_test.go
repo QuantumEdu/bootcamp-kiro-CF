@@ -73,8 +73,9 @@ func TestSQLiteUserRepository_FindByID_ExistingUser(t *testing.T) {
 	if user.Nombre != "Admin" {
 		t.Errorf("user.Nombre = %q, want %q", user.Nombre, "Admin")
 	}
-	if user.PINHash != "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4" {
-		t.Errorf("user.PINHash = %q, want sha256 hash of 1234", user.PINHash)
+	// PIN hash is bcrypt — just verify it's not empty
+	if user.PINHash == "" {
+		t.Error("user.PINHash is empty, want bcrypt hash")
 	}
 	if user.Rol != "admin" {
 		t.Errorf("user.Rol = %q, want %q", user.Rol, "admin")
@@ -99,17 +100,24 @@ func TestSQLiteUserRepository_FindByPINHash_ExistingUser(t *testing.T) {
 
 	repo := adapters.NewSQLiteUserRepository(db.RW)
 
-	// Maria Cajera's pin_hash is sha256("123")
-	user, err := repo.FindByPINHash(context.Background(), "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3")
+	// The seed uses bcrypt hashes. FindByPINHash does an exact match on pin_hash column.
+	// Get the actual hash from the DB to use in the lookup.
+	user, err := repo.FindByID(context.Background(), 2)
+	if err != nil {
+		t.Fatalf("FindByID(2) error = %v", err)
+	}
+
+	// Now search by that hash
+	found, err := repo.FindByPINHash(context.Background(), user.PINHash)
 	if err != nil {
 		t.Fatalf("FindByPINHash() error = %v", err)
 	}
 
-	if user.Nombre != "Maria Cajera" {
-		t.Errorf("user.Nombre = %q, want %q", user.Nombre, "Maria Cajera")
+	if found.Nombre != "Maria Cajera" {
+		t.Errorf("user.Nombre = %q, want %q", found.Nombre, "Maria Cajera")
 	}
-	if user.Rol != "cajero" {
-		t.Errorf("user.Rol = %q, want %q", user.Rol, "cajero")
+	if found.Rol != "cajero" {
+		t.Errorf("user.Rol = %q, want %q", found.Rol, "cajero")
 	}
 }
 
