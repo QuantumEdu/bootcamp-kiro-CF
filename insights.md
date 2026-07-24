@@ -431,3 +431,88 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | Presentación | 21 diapositivas |
 
 ---
+
+## Prompt 22: "busca en la memoria, para revisar lo pendiente que er..."
+
+**Lo que pedí:** Revisar lo pendiente del plan AWS (free tier + deploy) y separar claramente qué pasos hago yo (manual) vs. qué hace el agente (automatizable).
+**Lo que pasó:** Se leyó `governance/aws-deployment-plan.md` (sección PENDIENTE), se presentó una tabla dividida: 7 pasos manuales del usuario (cuenta AWS, CLI, credenciales, Bedrock, Powers, decisiones) y 9 pasos automatizables por el agente (Dockerfile, adaptadores PG, Bedrock adapter, IaC, CI/CD, testing). Con recomendación: Lambda + RDS PostgreSQL = $0/mes en free tier.
+**Versión profesional:**
+> "Revisa el plan de deploy en `governance/aws-deployment-plan.md` (sección PENDIENTE). Presenta en formato tabla: (1) pasos que requieren acción manual mía (con tiempo estimado), (2) pasos que puedes automatizar tú. Incluye tu recomendación de arquitectura optimizada para free tier y los prerequisitos que necesito cumplir antes de que empieces."
+
+**Lo que me faltó pedir:**
+- Indicar si ya tengo cuenta AWS o no (para saltarse ese paso)
+- Preguntar por el timeline total estimado
+
+**Flujo diferente:** Este es un buen "planning prompt" — preguntar la división de trabajo ANTES de ejecutar ahorra tiempo y alinea expectativas.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 22 |
+| Prompts de confirmación/aprobación | 3 (14%) |
+| Prompts multi-acción | 7 |
+| Prompts de consulta/planning | 5 |
+| Archivos creados total | 68+ |
+| PRs creados y mergeados | 3 |
+| Tasks completadas (ui-fixes spec) | 22/22 (100%) |
+| Tasks completadas (pos-ai-first spec) | 129/137 (94%) |
+| Tests passing | ✅ All packages green |
+| Build | ✅ Clean |
+| Presentación | 21 diapositivas |
+
+---
+
+## Prompt 23: "ya realice paso y paso 2"
+
+**Lo que pedí:** Confirmé que ya tengo cuenta AWS y AWS CLI instalado, para avanzar al siguiente paso.
+**Lo que pasó:** Se verificó que AWS CLI v2.36.6 está instalado en `C:\Program Files\Amazon\AWSCLIV2\aws.exe` pero no está en el PATH. Se confirmó que no hay credenciales configuradas aún. Se proporcionaron los pasos exactos para configurar credenciales (opción A: access keys, opción B: SSO) y agregar al PATH.
+**Versión profesional:**
+> "Listo: tengo cuenta AWS nueva y AWS CLI 2.36.6 instalado. Verifica que funciona y dime el siguiente paso para configurar credenciales. Mi decisión: Lambda + RDS PostgreSQL."
+
+**Lo que me faltó pedir:**
+- Decir si la cuenta es nueva o existente
+- Confirmar la decisión de arquitectura (Lambda vs App Runner) para que el agente pueda avanzar sin preguntar
+
+**Flujo diferente:** Incluir las decisiones pendientes en el mismo prompt ahorra un round-trip: "Ya tengo cuenta nueva + CLI. Quiero Lambda + RDS. Dame el paso de credenciales."
+
+---
+
+## Prompt 24: "listo"
+
+**Lo que pedí:** Confirmé que las credenciales AWS están configuradas.
+**Lo que pasó:** Se verificó con `aws sts get-caller-identity` — funciona correctamente. Cuenta 042470866132 (root). Se señaló que usar root no es ideal para producción y se preguntó por las decisiones pendientes (free tier, Lambda vs App Runner, Bedrock).
+**Versión profesional:**
+> "Listo, configuré las credenciales AWS. Es cuenta nueva con free tier. Confirmo: Lambda + RDS PostgreSQL. Mantén OpenRouter por ahora, Bedrock lo migramos después. Crea el spec de deploy y ejecútalo."
+
+**Lo que me faltó pedir:**
+- Incluir las decisiones pendientes en este mismo mensaje para evitar otro round-trip
+- Mencionar si es cuenta nueva o existente
+
+**Flujo diferente:** Cada "listo" sin contexto extra fuerza al agente a preguntar de nuevo. Un "listo + mis decisiones son X, Y, Z" es más eficiente.
+
+---
+
+## Prompt 25: "1. si es una cuenta nueva 2. lo puedes hacer tu? 3. s..."
+
+**Lo que pedí:** Respondí las 3 decisiones pendientes: cuenta nueva, que yo (Kiro) haga todo lo posible, y sí a Bedrock si tiene free tier.
+**Lo que pasó:** Se creó el spec completo `aws-lambda-deploy` usando Quick Plan workflow. 10 requerimientos, design con arquitectura Lambda+RDS+Bedrock+S3+CloudFront, 35 sub-tareas en 7 waves. SAM template completo, CI/CD pipeline, Dockerfile, dual-mode bootstrap, 11 correctness properties. Se presentó el resumen y se preguntó si ejecutar.
+**Versión profesional:**
+> "Decisiones: (1) Cuenta nueva con free tier activo. (2) Hazlo tú — Lambda + RDS PostgreSQL + Bedrock. (3) Sí a Bedrock, los $200 en créditos lo cubren. Crea el spec de deploy y dame el resumen antes de ejecutar."
+
+**Lo que me faltó pedir:**
+- Nada — las 3 decisiones desbloquearon todo el flujo de planificación
+
+**Flujo diferente:** Este es el ejemplo perfecto de "responder todas las preguntas pendientes en un solo mensaje" para desbloquear al máximo la ejecución del agente.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 25 |
+| Specs creados | 3 (pos-ai-first-mvp, ui-fixes-and-admin-config, aws-lambda-deploy) |
+| PRs creados y mergeados | 3 |
+| AWS spec tasks | 35 sub-tareas en 7 waves |
+| Cuenta AWS | ✅ Configurada (042470866132, root, us-east-1) |
+
+---

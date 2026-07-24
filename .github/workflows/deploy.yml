@@ -1,0 +1,81 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run tests
+        run: go test ./... -cover
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+
+      - name: Build and push image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/pos-ai-first:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/pos-ai-first:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/pos-ai-first:$IMAGE_TAG $ECR_REGISTRY/pos-ai-first:latest
+          docker push $ECR_REGISTRY/pos-ai-first:latest
+
+      - name: SAM Deploy
+        run: |
+          sam deploy \
+            --template-file template.yaml \
+            --stack-name pos-ai-first \
+            --image-repository ${{ steps.ecr.outputs.registry }}/pos-ai-first \
+            --parameter-overrides \
+              SecretDbArn=${{ secrets.SECRET_DB_ARN }} \
+              SecretSessionArn=${{ secrets.SECRET_SESSION_ARN }} \
+              SecretAiArn=${{ secrets.SECRET_AI_ARN }} \
+              VpcSubnetIds=${{ secrets.VPC_SUBNET_IDS }} \
+              VpcSecurityGroupIds=${{ secrets.VPC_SG_IDS }} \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset
+
+      - name: Sync static assets to S3
+        run: aws s3 sync static/ s3://pos-static-production/ --delete
+
+      - name: Post-deploy health check
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name pos-ai-first \
+            --query 'Stacks[0].Outputs[?OutputKey==`ApiEndpoint`].OutputValue' \
+            --output text)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health")
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Health check failed with status $STATUS"
+            exit 1
+          fi

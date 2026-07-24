@@ -1,201 +1,55 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strconv"
 
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/nlsql"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/services"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/use_cases"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/config"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/database"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/handlers"
-	infrahttp "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http"
-	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/internal/bootstrap"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	_ = godotenv.Load()
 
-	cfg := config.Load()
-
-	// Validate SESSION_SECRET is set (required for AES-GCM encryption of API keys)
-	if os.Getenv("SESSION_SECRET") == "" {
+	// Validate SESSION_SECRET
+	sessionSecret := os.Getenv("SESSION_SECRET")
+	if sessionSecret == "" {
 		log.Fatalf("SESSION_SECRET environment variable is required but not set")
 	}
 
-	// Database
-	db, err := database.New(cfg.DatabasePath)
-	if err != nil {
-		log.Fatalf("failed to initialize database: %v", err)
-	}
-	defer db.Close()
-
-	// Templates
-	tmpl, err := loadTemplates("templates")
-	if err != nil {
-		log.Fatalf("failed to load templates: %v", err)
+	queryTimeout, _ := strconv.Atoi(os.Getenv("QUERY_TIMEOUT_SECONDS"))
+	if queryTimeout == 0 {
+		queryTimeout = 5
 	}
 
-	// Services
-	cryptoService := services.NewCryptoService(cfg.SessionSecret)
-	openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
-	nlsqlService := nlsql.NewService(openRouter, db.RO, getSchema(), cfg.QueryTimeoutSeconds)
-	nlsqlService.SetLogger(nlsql.NewQueryLogger(db.RW))
+	cfg := bootstrap.Config{
+		AppEnv:              os.Getenv("APP_ENV"), // defaults to "" which means local
+		Port:                getEnvDefault("PORT", "8080"),
+		DatabasePath:        getEnvDefault("DATABASE_PATH", "./data/pos.db"),
+		SessionSecret:       sessionSecret,
+		OpenRouterAPIKey:    os.Getenv("OPENROUTER_API_KEY"),
+		OpenRouterModel:     getEnvDefault("OPENROUTER_MODEL", "anthropic/claude-3-haiku"),
+		QueryTimeoutSeconds: queryTimeout,
+	}
 
-	// Session manager
-	sessionManager := infrahttp.NewSessionManager(db.RW)
+	router, cleanup, err := bootstrap.BuildRouter(cfg)
+	if err != nil {
+		log.Fatalf("bootstrap failed: %v", err)
+	}
+	defer cleanup()
 
-	// Repositories
-	userRepo := adapters.NewSQLiteUserRepository(db.RW)
-	productRepo := adapters.NewSQLiteProductRepository(db.RW)
-	saleRepo := adapters.NewSQLiteSaleRepository(db.RW)
-	inventoryRepo := adapters.NewSQLiteInventoryRepository(db.RW)
-	clientRepo := adapters.NewSQLiteClientRepository(db.RW)
-	configRepo := adapters.NewSQLiteConfigRepository(db.RW)
-
-	// Use Cases
-	authUC := use_cases.NewAuthenticateUser(userRepo)
-	createProductUC := use_cases.NewCreateProduct(productRepo)
-	updateProductUC := use_cases.NewUpdateProduct(productRepo)
-	listProductsUC := use_cases.NewListProducts(productRepo)
-	deactivateProductUC := use_cases.NewDeactivateProduct(productRepo)
-	registerSaleUC := use_cases.NewRegisterSale(saleRepo, productRepo, inventoryRepo)
-	createClientUC := use_cases.NewCreateClient(clientRepo)
-	listClientsUC := use_cases.NewListClients(clientRepo)
-
-	// Handlers
-	pageHandler := handlers.NewPageHandler(tmpl)
-	chatHandler := handlers.NewChatHandler(nlsqlService, tmpl)
-	metricsHandler := handlers.NewMetricsHandler(db.RW)
-	authHandler := handlers.NewAuthHandler(authUC, tmpl, sessionManager)
-	productHandler := handlers.NewProductHandler(createProductUC, updateProductUC, listProductsUC, deactivateProductUC, productRepo, tmpl)
-	saleHandler := handlers.NewSaleHandler(registerSaleUC, tmpl, sessionManager)
-	adminConfigHandler := handlers.NewAdminConfigHandler(configRepo, cryptoService, tmpl)
-	clientHandler := handlers.NewClientHandler(createClientUC, listClientsUC, tmpl)
-
-	// Router
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Compress(5))
-	r.Use(sessionManager.LoadAndSave)
-
-	// Static files
-	fileServer := http.FileServer(http.Dir("static"))
-	r.Handle("/static/*", http.StripPrefix("/static/", fileServer))
-
-	// Health
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"status":"ok","port":%q}`, cfg.Port)
-	})
-
-	// Public routes
-	r.Get("/login", authHandler.LoginPage)
-	r.Post("/login", authHandler.Login)
-
-	// Protected routes
-	r.Group(func(r chi.Router) {
-		r.Use(mw.RequireAuth(sessionManager))
-
-		// Pages
-		r.Get("/", pageHandler.Dashboard)
-		r.Get("/productos", pageHandler.Products)
-		r.Get("/ventas", pageHandler.Sales)
-		r.Get("/metricas", pageHandler.Metrics)
-		r.Post("/logout", authHandler.Logout)
-
-		// Client routes
-		r.Get("/clientes", clientHandler.List)
-		r.Get("/clientes/new", clientHandler.CreateForm)
-		r.Post("/clientes", clientHandler.Create)
-
-		// API: Sales
-		r.Post("/api/ventas", saleHandler.CompleteSale)
-		r.Get("/api/ventas/recientes", metricsHandler.VentasRecientes)
-
-		// HTMX fragment routes — NoCache to prevent stale responses
-		r.Group(func(r chi.Router) {
-			r.Use(mw.NoCache)
-
-			// API: Metrics (HTMX fragments)
-			r.Get("/api/metrics/ventas-hoy", metricsHandler.VentasHoy)
-			r.Get("/api/metrics/ventas-semana", metricsHandler.VentasSemana)
-			r.Get("/api/metrics/ventas-mes", metricsHandler.VentasMes)
-			r.Get("/api/metrics/top-productos", metricsHandler.TopProductos)
-			r.Get("/api/metrics/stock-bajo", metricsHandler.StockBajo)
-			r.Get("/api/metrics/clientes-frecuentes", metricsHandler.ClientesFrecuentes)
-			r.Get("/api/metrics/margen-categoria", metricsHandler.MargenCategoria)
-
-			// API: Products (HTMX fragments)
-			r.Get("/api/productos", metricsHandler.ProductosHTMX)
-			r.Get("/api/productos/buscar", metricsHandler.ProductosBuscar)
-		})
-		r.Get("/productos/new", productHandler.CreateForm)
-		r.Post("/productos", productHandler.Create)
-		r.Get("/productos/{id}/edit", productHandler.EditForm)
-		r.Post("/productos/{id}", productHandler.Edit)
-		r.Delete("/productos/{id}", productHandler.Deactivate)
-
-		// API: Chat NL→SQL
-		r.Post("/api/chat", chatHandler.HandleChat)
-
-		// Admin-only routes
-		r.Group(func(r chi.Router) {
-			r.Use(mw.RequireRole(sessionManager, "admin"))
-			r.Get("/admin/config", adminConfigHandler.Show)
-			r.Post("/admin/config", adminConfigHandler.Update)
-		})
-	})
-
-	// Start
 	addr := ":" + cfg.Port
 	log.Printf("POS AI-First starting on http://localhost%s", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
+	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
 
-func loadTemplates(dir string) (*template.Template, error) {
-	tmpl := template.New("")
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() || filepath.Ext(path) != ".html" {
-			return nil
-		}
-		content, err := os.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", path, err)
-		}
-		relPath, _ := filepath.Rel(dir, path)
-		_, err = tmpl.New(relPath).Parse(string(content))
-		if err != nil {
-			return fmt.Errorf("parsing %s: %w", relPath, err)
-		}
-		return nil
-	})
-	return tmpl, err
-}
-
-func getSchema() string {
-	return `Tables:
-- usuarios (id, nombre, pin_hash, rol, activo, created_at)
-- categorias (id, nombre, descripcion, activo)
-- productos (id, nombre, sku, categoria_id, precio_venta, precio_compra, stock_actual, stock_minimo, unidad, activo, created_at, updated_at)
-- clientes (id, nombre, telefono, direccion, created_at)
-- ventas (id, usuario_id, cliente_id, total, metodo_pago, created_at)
-- venta_items (id, venta_id, producto_id, cantidad, precio_unitario, subtotal)
-- inventario_movimientos (id, producto_id, tipo, cantidad, stock_resultante, referencia_tipo, referencia_id, motivo, usuario_id, created_at)
-- configuracion (id, clave, valor)`
+func getEnvDefault(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
 }
