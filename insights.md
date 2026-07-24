@@ -570,3 +570,18 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | Costo mensual | $0 (free tier) |
 
 ---
+
+## Prompt 28: "marco error el endpoint"
+
+**Lo que pedí:** Reporté que el endpoint de la app en AWS marca error.
+**Lo que pasó:** Se revisaron los logs de CloudWatch y la Lambda está FUNCIONANDO correctamente: /health → 200, / → 303 redirect to /login, /login → 200 con HTML. El "error" era probablemente el redirect a /login (la app requiere autenticación para ver el dashboard) o un intento de invocación directa sin payload HTTP. Cold start: 4.4s (primera vez), warm: 1.3ms. La app vive en https://zz637vr6cd.execute-api.us-east-1.amazonaws.com/login
+**Versión profesional:**
+> "El endpoint https://zz637vr6cd.execute-api.us-east-1.amazonaws.com marca error. Muestra [descripción del error/screenshot]. Revisa los logs de Lambda y dime qué está pasando."
+
+**Lo que me faltó pedir:**
+- Describir QUÉ error exactamente (código HTTP, mensaje, screenshot)
+- Indicar qué URL probé y qué esperaba ver
+
+**Flujo diferente:** Siempre incluir el error exacto o screenshot cuando se reporta un bug — "marca error" es ambiguo.
+
+---

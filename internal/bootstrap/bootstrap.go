@@ -208,7 +208,10 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Compress(5))
+	// Only compress in local mode — API Gateway handles compression for Lambda
+	if cfg.AppEnv != "lambda" {
+		r.Use(middleware.Compress(5))
+	}
 	r.Use(sessionManager.LoadAndSave)
 
 	// Static files — only in local mode (CloudFront handles in Lambda)
