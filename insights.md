@@ -516,3 +516,31 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | Cuenta AWS | ✅ Configurada (042470866132, root, us-east-1) |
 
 ---
+
+## Prompt 26: "ok guarda esto en un archivo que se llame deploy.md..."
+
+**Lo que pedí:** Múltiples acciones: (1) guardar el estado del deploy en deploy.md para retomar mañana, (2) actualizar presentación con herramientas y flujo AWS, (3) actualizar guión de video, (4) actualizar insights, (5) commit + push + merge.
+**Lo que pasó:** Se creó `governance/deploy.md` con estado completo (código hecho, infra pendiente, decisiones, costos, comando para retomar). Se actualizó presentacion.md con 3 slides nuevas (arquitectura implementada, hexagonal en acción, costos $0). Se actualizó video.md con sección AWS en el guión. Se hicieron los insights. Commit + push + merge.
+**Versión profesional:**
+> "Antes de cerrar sesión: 1. Crea `governance/deploy.md` con el estado actual del deploy (qué está hecho, qué falta, decisiones, costos, y el comando para retomar mañana). 2. Actualiza `presentacion.md` reemplazando las slides 18-20 con la implementación real (herramientas, flujo pipeline, dual-mode, $0 free tier). 3. Actualiza `video.md` sección 5 con el contenido de AWS. 4. Commit, push, merge a main."
+
+**Lo que me faltó pedir:**
+- Nada — es un excelente prompt de "cierre de sesión" que captura todo lo necesario para continuidad
+
+**Flujo diferente:** Este es el patrón ideal para cerrar: guardar estado, actualizar docs, commit. Perfecto para que la próxima sesión arranque sin fricciones.
+
+---
+
+| Métrica | Valor |
+|---------|-------|
+| Total de prompts del usuario | 26 |
+| Specs creados | 3 (pos-ai-first-mvp, ui-fixes-and-admin-config, aws-lambda-deploy) |
+| PRs creados y mergeados | 4 |
+| AWS deploy tasks completadas | 45/45 (100%) |
+| Archivos nuevos (deploy) | 35 (5243 líneas) |
+| Cuenta AWS | ✅ Configurada |
+| Costo producción | $0/mes (free tier) |
+| Presentación | 22 diapositivas |
+| Código total del proyecto | ~10,000+ líneas Go |
+
+---

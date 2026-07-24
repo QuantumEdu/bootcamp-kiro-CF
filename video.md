@@ -89,33 +89,42 @@
 
 ---
 
-## Sección 5: Arquitectura + Seguridad (3:45 – 4:30)
+## Sección 5: Arquitectura + AWS Deploy (3:45 – 4:30)
 
-**Visual:** Diagrama de arquitectura hexagonal + diagrama de 5 capas de seguridad.
+**Visual:** Diagrama de arquitectura hexagonal → transición a diagrama AWS con Lambda + RDS + Bedrock.
 
 **Narración:**
 > "La arquitectura es hexagonal: el dominio no importa frameworks, los use-cases orquestan, y la infraestructura implementa los adaptadores."
 >
-> "Stack: Go, chi router, SQLite con WAL mode, HTMX para el frontend server-driven, y OpenRouter API para el AI."
+> "Stack local: Go, chi router, SQLite, HTMX, OpenRouter. Pero gracias a hexagonal, YA migramos a AWS sin tocar una línea del dominio."
 >
-> "Seguridad NL→SQL en 5 capas: prompt, validación Go, conexión read-only, timeout con LIMIT, y auditoría. No confiamos en el LLM — cada capa es independiente."
+> "El mismo código corre local con SQLite o en Lambda con PostgreSQL. Un switch en el bootstrap:"
+>
+> "`APP_ENV=lambda` → PostgreSQL, Bedrock, pgx sessions.  
+> `APP_ENV=local` → SQLite, OpenRouter, SQLite sessions."
+>
+> "35 archivos nuevos. Cero cambios en dominio. Costo: $0 con free tier."
+>
+> "Seguridad NL→SQL: 5 capas. Prompt, validación Go, conexión read-only, timeout con LIMIT, y auditoría. No confiamos en el LLM."
 
-**Notas de producción:** Animación simple del diagrama, mostrando las capas una por una.
+**Notas de producción:** Animación del diagrama hexagonal mostrando los adaptadores nuevos (PostgreSQL, Bedrock) reemplazando los locales (SQLite, OpenRouter) sin tocar el centro.
 
 ---
 
 ## Sección 6: Cierre (4:30 – 5:00)
 
-**Visual:** Resumen de métricas + roadmap + pantalla final.
+**Visual:** Resumen de métricas + pantalla AWS + pantalla final con QR.
 
 **Narración:**
-> "En 5 días: 20 tareas, arquitectura limpia, tests en dominio al 90%, zero lint warnings, un chat AI funcional con respuestas en español, y un Project Board que se mantiene solo."
+> "En 5 días: 3 specs creados, 100+ tareas ejecutadas en waves paralelas, arquitectura hexagonal limpia, tests al 90%, zero lint warnings, chat AI en español, CRUD completo, y la migración a AWS lista para dar deploy."
 >
-> "Próximos pasos: migrar a AWS, agregar historial de conversación, y soporte multi-sucursal."
+> "Costo en producción: $0 con free tier. Lambda gratis, RDS gratis 12 meses, Bedrock cubierto por créditos."
 >
-> "Esto es lo que pasa cuando combinas buenas herramientas con un proceso estructurado. Gracias."
+> "Esto es lo que pasa cuando combinas Kiro + arquitectura hexagonal + un proceso estructurado: velocidad sin sacrificar calidad, y migración sin dolor."
+>
+> "Gracias."
 
-**Notas de producción:** Terminar con el QR al repo y transición a pantalla de cierre.
+**Notas de producción:** Terminar con el QR al repo y transición a pantalla de cierre. Mostrar métricas en grid animado.
 
 ---
 

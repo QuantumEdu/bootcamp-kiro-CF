@@ -276,77 +276,106 @@ Admin → Form → AES-GCM Encrypt (SHA-256 de SESSION_SECRET) → SQLite config
 
 ---
 
-## Diapositiva 18: Deploy en AWS — Plan de producción
+## Diapositiva 18: Deploy en AWS — Ya implementado
 
-**Título:** De MVP local a producción en AWS  
+**Título:** De MVP local a producción en AWS — El código ya está  
 **Descripción:**
-- **Compute:** AWS App Runner o Lambda (Go binary en container, auto-scaling 0→N)
-- **Base de datos:** Amazon RDS PostgreSQL (migración de SQLite, backups automáticos, Multi-AZ)
-- **AI:** Amazon Bedrock (Claude 3 Haiku) reemplaza OpenRouter — latencia <2s, en tu VPC
-- **Storage:** S3 para assets estáticos + CloudFront CDN global
-- **Secrets:** AWS Secrets Manager reemplaza SESSION_SECRET local
-- **CI/CD:** GitHub Actions → ECR → App Runner (deploy automático en push a main)
-- **Monitoring:** CloudWatch Logs + X-Ray para tracing del pipeline NL→SQL
-- **Costo estimado:** ~$25-40/mes (o ~$0 con Lambda free tier + créditos educativos)
 
-**Lo que NO cambia (gracias a hexagonal):**
-- `src/domain/` — 0 cambios
-- `src/application/` — 0 cambios  
-- `templates/` — 0 cambios
+**Arquitectura implementada:**
+```
+Browser → CloudFront (static/) → S3
+       → API Gateway HTTP API → Lambda (Go ARM64, 512MB)
+                                  ├── RDS PostgreSQL (pgxpool)
+                                  ├── Bedrock Claude 3 Haiku
+                                  └── Secrets Manager (cache)
+```
 
-**Lo que sí cambia (solo adaptadores):**
-- SQLiteRepo → PostgresRepo (misma interfaz)
-- OpenRouterAdapter → BedrockAdapter (misma interfaz)
-- config.go → Secrets Manager
+**Herramientas y flujo de deploy:**
+| Herramienta | Rol en el pipeline |
+|-------------|-------------------|
+| **AWS SAM** | IaC — define Lambda, API Gateway, S3, CloudFront, IAM en un template.yaml |
+| **GitHub Actions** | CI/CD — test → build imagen → push ECR → sam deploy → health check |
+| **Docker (ARM64)** | Container image Lambda — Go binary 15MB + templates |
+| **pgx/v5** | Driver PostgreSQL pure-Go (sin CGO) con connection pool optimizado |
+| **algnhsa** | Adaptador chi router → Lambda event handler (zero-change en handlers) |
+| **Secrets Manager** | Credenciales cifradas con cache in-memory (warm starts) |
 
-**Comentarios para el presentador:** "El MVP corre local con SQLite. Para producción, el cambio es mínimo gracias a la arquitectura hexagonal — solo cambiamos los adaptadores, no la lógica. 5 archivos nuevos, 2 modificados."  
-**Propuesta de diseño:** Diagrama AWS con los servicios conectados. Flecha mostrando qué cambia (adaptadores) vs. qué se mantiene (dominio/application).
+**Dual-mode bootstrap:**
+```go
+switch cfg.AppEnv {
+case "lambda":  // PostgreSQL + Bedrock + pgx sessions
+default:        // SQLite + OpenRouter + SQLite sessions
+}
+```
+
+**Archivos creados:** 35 archivos nuevos, 5243 líneas. Dominio intacto.
+
+**Comentarios para el presentador:** "Todo el código de deploy ya está escrito. La arquitectura hexagonal permitió agregar 7 adaptadores PostgreSQL sin tocar una sola línea del dominio. Mañana solo falta crear la infra en AWS y dar `sam deploy`."  
+**Propuesta de diseño:** Diagrama de flujo del pipeline: código → GitHub Actions → ECR → Lambda → API Gateway. Highlight del dual-mode switch.
 
 ---
 
-## Diapositiva 19: Kiro Powers para AWS — Lo que necesitamos
+## Diapositiva 19: El poder de la arquitectura hexagonal
 
-**Título:** Powers y herramientas para la migración a AWS  
+**Título:** Hexagonal en acción: migración sin dolor  
 **Descripción:**
 
-**Powers actuales del proyecto:**
-| Power | Uso actual |
-|-------|-----------|
-| Long-Term Memory (ltm-power) | Persistencia de contexto entre sesiones |
-| Context7 | Documentación actualizada de librerías y SDKs |
+**Lo que NO cambió (cero líneas):**
+- `src/domain/` — Entidades, validaciones, puertos
+- `src/application/` — Use cases, NL→SQL service
+- `templates/` — Todo el frontend HTMX
 
-**Powers necesarios para AWS deploy:**
-| Power / Herramienta | Propósito |
-|---------------------|-----------|
-| AWS Documentation MCP Server | Guía de configuración de servicios AWS |
-| AWS CDK / SAM Power | Infraestructura como código (IaC) — definir stack completo |
-| AWS Bedrock Power | Integración con Claude 3 Haiku para NL→SQL en producción |
-| GitHub Actions Power | Automatizar CI/CD pipeline (test → build → deploy) |
+**Lo que se AGREGÓ (solo adaptadores nuevos):**
+| Adaptador | Implementa | Driver |
+|-----------|------------|--------|
+| `postgres_product_repository.go` | `ports.ProductRepository` | pgxpool |
+| `postgres_sale_repository.go` | `ports.SaleRepository` | pgxpool + tx |
+| `postgres_user_repository.go` | `ports.UserRepository` | pgxpool |
+| `postgres_client_repository.go` | `ports.ClientRepository` | pgxpool |
+| `postgres_inventory_repository.go` | `ports.InventoryRepository` | pgxpool |
+| `postgres_config_repository.go` | `ports.ConfigRepository` | pgxpool |
+| `postgres_metrics_repository.go` | `ports.MetricsRepository` | pgxpool |
+| `bedrock_query_service.go` | `ports.AIQueryService` | AWS SDK v2 |
 
-**MCP Servers investigados:**
-- `awslabs/aws-documentation-mcp-server` — Docs oficiales de AWS en contexto
-- `awslabs/aws-cdk-mcp-server` — Generar CDK stacks con guía del agente
-- Potencial: power custom para Bedrock runtime + Secrets Manager
+**Resultado:** Misma interfaz, distinta implementación. El use case `RegisterSale` no sabe si persiste en SQLite o PostgreSQL.
 
-**Decisiones pendientes para deploy:**
-1. ¿Lambda (gratis, cold start ~100ms) o App Runner ($7/mes, siempre caliente)?
-2. ¿PostgreSQL RDS o SQLite con EFS?
-3. ¿Bedrock directo o mantener OpenRouter como fallback?
-4. ¿Cuenta AWS nueva (free tier 12 meses) o existente?
-
-**Comentarios para el presentador:** "Kiro Powers son extensibles. Para AWS necesitamos powers de documentación e IaC. La comunidad ya tiene MCP servers de AWS Labs que podemos instalar. La inversión en hexagonal nos ahorra semanas de refactoring."  
-**Propuesta de diseño:** Tabla con íconos de Powers instalados (check verde) vs. necesarios (flecha azul). Logo de AWS + Kiro conectados.
+**Comentarios para el presentador:** "Esta es la demostración práctica de por qué la arquitectura hexagonal importa. 7 adaptadores nuevos, zero cambios en lógica de negocio. El dominio es inmutable."  
+**Propuesta de diseño:** Diagrama hexagonal con el dominio en el centro (candado) y flechas de los adaptadores nuevos apuntando hacia adentro.
 
 ---
 
-## Diapositiva 20: Próximos pasos
+## Diapositiva 20: Costo y timeline
+
+**Título:** $0/mes — Free Tier cubre todo  
+**Descripción:**
+
+| Servicio | Free Tier | Costo post-free |
+|----------|-----------|-----------------|
+| Lambda | 1M req/mes GRATIS (always free) | ~$0.20/1M req |
+| RDS PostgreSQL | 12 meses gratis (t4g.micro) | ~$13/mes |
+| Bedrock Claude Haiku | $200 créditos (~100 meses) | ~$2/mes |
+| S3 + CloudFront | 5GB + 1TB gratis | ~$1/mes |
+| Secrets Manager | 4 secrets | ~$1.60/mes |
+| **Total primer año** | | **$0 efectivo** |
+
+**Timeline de deploy (restante):**
+1. Crear VPC + RDS + Secrets (Kiro automatiza) — 30 min
+2. Build Docker + push ECR — 5 min  
+3. `sam deploy` — 5 min
+4. Habilitar Bedrock (manual, consola) — 5 min
+5. Health check + test E2E — 5 min
+
+**Comentarios para el presentador:** "El código ya está hecho. Solo falta dar 'sam deploy' y la app vive en la nube. $0/mes el primer año gracias al free tier."  
+**Propuesta de diseño:** Tabla de costos grande con $0 resaltado. Timeline horizontal con checkmarks.
+
+---
+
+## Diapositiva 21: Próximos pasos
 
 **Título:** Hacia dónde va el proyecto  
 **Descripción:**
-- **Inmediato:** Instalar AWS Powers en Kiro, crear spec de deployment
-- **Semana 1:** Dockerfile + CI/CD, migrar a RDS PostgreSQL
-- **Semana 2:** Integrar Amazon Bedrock, crear BedrockQueryService
-- **Semana 3:** Setup App Runner/Lambda + CloudFront + monitoring
+- **Mañana:** Deploy a AWS (`sam deploy`) — la app vive en la nube
+- **Semana 1:** Seed de datos en RDS, Bedrock habilitado, demo cloud
 - **Futuro:**
   - Historial de conversación AI
   - Soporte multi-sucursal
@@ -354,14 +383,14 @@ Admin → Form → AES-GCM Encrypt (SHA-256 de SESSION_SECRET) → SQLite config
   - Analytics con dashboards personalizables
   - Predicción de demanda (Bedrock + datos históricos)
 
-**Comentarios para el presentador:** "Tenemos el plan detallado en `governance/aws-deployment-plan.md`. La migración es de 7 días estimados. El MVP demuestra el concepto; AWS lo lleva a producción."  
-**Propuesta de diseño:** Roadmap horizontal con 3 fases: MVP Local (✅) → AWS Deploy (🔄) → AI Advanced (📋).
+**Comentarios para el presentador:** "El MVP demuestra el concepto. La migración a producción es literalmente un comando. Hexagonal + Kiro specs = velocidad sin sacrificar calidad."  
+**Propuesta de diseño:** Roadmap con 3 fases: MVP Local (✅) → AWS Deploy (🔄 mañana) → AI Advanced (📋).
 
 ---
 
-## Diapositiva 21: Cierre
+## Diapositiva 22: Cierre
 
 **Título:** Gracias — ¿Preguntas?  
 **Descripción:** Links al repo, QR code, contacto.  
-**Comentarios para el presentador:** Abre a preguntas. Ten preparadas respuestas para: "¿Por qué no usaste un ORM?", "¿Es seguro ejecutar SQL generado por AI?", "¿Por qué SQLite y no Postgres?", "¿Qué Powers de Kiro usaste?", "¿Cuánto cuesta correr esto en AWS?"  
+**Comentarios para el presentador:** Abre a preguntas. Ten preparadas respuestas para: "¿Por qué no usaste un ORM?", "¿Es seguro ejecutar SQL generado por AI?", "¿Por qué SQLite y no Postgres?", "¿Qué Powers de Kiro usaste?", "¿Cuánto cuesta correr esto en AWS?", "¿Cómo funciona el dual-mode bootstrap?"  
 **Propuesta de diseño:** QR al repo + información de contacto sobre fondo limpio.
