@@ -641,3 +641,18 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 | Costo AWS | $0/mes (free tier) |
 
 ---
+
+## Prompt 31: "ahora introduce al menos 10 articulos, proveedores, cl..."
+
+**Lo que pedí:** Poblar la base de datos con datos realistas para testing: al menos 10 artículos, clientes, compras, etc.
+**Lo que pasó:** Se expandieron los datos de seed significativamente: 12 clientes (antes 5), 20 ventas con items (antes 10), 30 productos (ya existían), 12 movimientos de inventario (nuevos). Se actualizó tanto el seed SQLite (003_seed.sql) como el PostgreSQL seed tool (cmd/seedpg). Se ejecutó el seed en RDS exitosamente. La DB local se reconstruyó.
+**Versión profesional:**
+> "Expande el seed de datos para testing realista: mínimo 12 clientes, 20 ventas distribuidas en la última semana, movimientos de inventario (entradas de compra + salidas por venta). Aplica tanto en SQLite local como en RDS PostgreSQL."
+
+**Lo que me faltó pedir:**
+- Mencionar que también quería proveedores (la tabla no existe en el schema actual — es del PRD futuro, no del MVP)
+- Especificar si los datos deberían ser mexicanos (lo inferí del contexto)
+
+**Flujo diferente:** Nada — las tablas de proveedores/compras no existen en el schema MVP. Los datos que se poblaron cubren todas las tablas existentes.
+
+---
