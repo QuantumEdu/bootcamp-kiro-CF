@@ -51,7 +51,14 @@ INSERT OR IGNORE INTO clientes (id, nombre, telefono, direccion) VALUES
 (2, 'Maria Garcia',     '5559876543', 'Av. Juarez 456'),
 (3, 'Carlos Lopez',     '5554567890', 'Calle Hidalgo 789'),
 (4, 'Ana Martinez',     '5557891234', 'Av. Insurgentes 321'),
-(5, 'Roberto Sanchez',  '5552345678', 'Calle Morelos 654');
+(5, 'Roberto Sanchez',  '5552345678', 'Calle Morelos 654'),
+(6, 'Laura Torres',     '5553456789', 'Calle Madero 100'),
+(7, 'Pedro Ramirez',    '5556781234', 'Av. Universidad 250'),
+(8, 'Sofia Hernandez',  '5558901234', 'Calle Allende 75'),
+(9, 'Miguel Angel Diaz','5551112233', 'Av. Chapultepec 500'),
+(10, 'Gabriela Flores', '5554445566', 'Calle 5 de Mayo 80'),
+(11, 'Fernando Castro',  '5557778899', 'Av. Revolucion 320'),
+(12, 'Patricia Ruiz',   '5552223344', 'Calle Victoria 45');
 
 INSERT OR IGNORE INTO ventas (id, usuario_id, cliente_id, total, metodo_pago, created_at) VALUES
 (1, 1, 1, 88.00,  'efectivo',      datetime('now', '-6 days', 'localtime')),
@@ -63,7 +70,17 @@ INSERT OR IGNORE INTO ventas (id, usuario_id, cliente_id, total, metodo_pago, cr
 (7, 1, 1, 122.00, 'efectivo',     datetime('now', '-1 day', 'localtime')),
 (8, 2, 5, 85.00,  'efectivo',     datetime('now', 'localtime')),
 (9, 1, NULL, 44.00,  'efectivo',   datetime('now', 'localtime')),
-(10, 1, 2, 210.00, 'tarjeta',     datetime('now', 'localtime'));
+(10, 1, 2, 210.00, 'tarjeta',     datetime('now', 'localtime')),
+(11, 2, 6, 130.00, 'efectivo',    datetime('now', '-7 days', 'localtime')),
+(12, 1, 7, 95.00,  'tarjeta',     datetime('now', '-7 days', 'localtime')),
+(13, 2, 8, 62.00,  'efectivo',    datetime('now', '-5 days', 'localtime')),
+(14, 1, 9, 180.00, 'transferencia', datetime('now', '-4 days', 'localtime')),
+(15, 2, 10, 48.00, 'efectivo',    datetime('now', '-3 days', 'localtime')),
+(16, 1, 11, 275.00, 'tarjeta',    datetime('now', '-2 days', 'localtime')),
+(17, 2, 12, 92.00, 'efectivo',    datetime('now', '-1 day', 'localtime')),
+(18, 1, 6, 156.00, 'efectivo',    datetime('now', 'localtime')),
+(19, 2, 3, 320.00, 'tarjeta',     datetime('now', 'localtime')),
+(20, 1, 9, 67.00,  'efectivo',    datetime('now', 'localtime'));
 
 INSERT OR IGNORE INTO venta_items (venta_id, producto_id, cantidad, precio_unitario, subtotal) VALUES
 (1, 1, 2, 22.00, 44.00), (1, 12, 2, 18.00, 36.00), (1, 14, 1, 12.00, 12.00),
@@ -75,9 +92,34 @@ INSERT OR IGNORE INTO venta_items (venta_id, producto_id, cantidad, precio_unita
 (7, 1, 3, 22.00, 66.00), (7, 4, 2, 22.00, 44.00), (7, 14, 1, 12.00, 12.00),
 (8, 19, 2, 28.00, 56.00), (8, 22, 3, 12.00, 36.00),
 (9, 3, 1, 28.00, 28.00), (9, 11, 1, 28.00, 28.00),
-(10, 28, 2, 95.00, 190.00), (10, 26, 1, 20.00, 20.00);
+(10, 28, 2, 95.00, 190.00), (10, 26, 1, 20.00, 20.00),
+(11, 1, 3, 22.00, 66.00), (11, 5, 2, 32.00, 64.00),
+(12, 28, 1, 95.00, 95.00),
+(13, 22, 2, 12.00, 24.00), (13, 19, 1, 28.00, 28.00), (13, 14, 1, 12.00, 12.00),
+(14, 5, 3, 32.00, 96.00), (14, 1, 2, 22.00, 44.00), (14, 21, 1, 42.00, 42.00),
+(15, 12, 1, 18.00, 18.00), (15, 13, 1, 22.00, 22.00), (15, 15, 1, 15.00, 15.00),
+(16, 28, 2, 95.00, 190.00), (16, 8, 1, 55.00, 55.00), (16, 19, 1, 28.00, 28.00),
+(17, 6, 2, 26.00, 52.00), (17, 7, 1, 38.00, 38.00),
+(18, 1, 4, 22.00, 88.00), (18, 4, 2, 22.00, 44.00), (18, 24, 1, 18.00, 18.00),
+(19, 28, 3, 95.00, 285.00), (19, 29, 1, 45.00, 45.00),
+(20, 2, 2, 15.00, 30.00), (20, 3, 1, 28.00, 28.00), (20, 15, 1, 15.00, 15.00);
 
 INSERT OR IGNORE INTO configuracion (clave, valor) VALUES
 ('nombre_negocio', 'Mi Tiendita'),
 ('moneda', 'MXN'),
 ('iva_porcentaje', '16');
+
+-- Movimientos de inventario (entradas de compra y ajustes)
+INSERT OR IGNORE INTO inventario_movimientos (id, producto_id, tipo, cantidad, stock_resultante, referencia_tipo, motivo, usuario_id, created_at) VALUES
+(1,  1,  'entrada', 24, 72, 'compra', 'Reabastecimiento semanal Coca Cola', 1, datetime('now', '-7 days', 'localtime')),
+(2,  2,  'entrada', 24, 60, 'compra', 'Reabastecimiento agua', 1, datetime('now', '-7 days', 'localtime')),
+(3,  5,  'entrada', 24, 48, 'compra', 'Compra cerveza Corona', 1, datetime('now', '-5 days', 'localtime')),
+(4,  12, 'entrada', 30, 70, 'compra', 'Reposicion Sabritas', 2, datetime('now', '-5 days', 'localtime')),
+(5,  28, 'entrada', 10, 15, 'compra', 'Compra pollo fresco', 1, datetime('now', '-4 days', 'localtime')),
+(6,  19, 'entrada', 15, 35, 'compra', 'Reabastecimiento arroz', 1, datetime('now', '-3 days', 'localtime')),
+(7,  6,  'entrada', 12, 27, 'compra', 'Compra leche', 2, datetime('now', '-3 days', 'localtime')),
+(8,  14, 'ajuste',  5,  55, NULL,     'Ajuste por conteo fisico', 1, datetime('now', '-2 days', 'localtime')),
+(9,  25, 'entrada', 8,  18, 'compra', 'Compra tomate fresco', 1, datetime('now', '-1 day', 'localtime')),
+(10, 1,  'salida',  10, 62, 'venta',  'Ventas del dia', 1, datetime('now', 'localtime')),
+(11, 28, 'salida',  5,  10, 'venta',  'Ventas pollo', 1, datetime('now', 'localtime')),
+(12, 5,  'salida',  9,  39, 'venta',  'Ventas cerveza semana', 2, datetime('now', 'localtime'));
