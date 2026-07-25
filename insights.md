@@ -656,3 +656,17 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 **Flujo diferente:** Nada — las tablas de proveedores/compras no existen en el schema MVP. Los datos que se poblaron cubren todas las tablas existentes.
 
 ---
+
+## Prompt 32: "generame un archivo en excel donde esten llenos estos..."
+
+**Lo que pedí:** Un archivo Excel con datos desordenados de una taquería (ventas, clientes, gastos) para usar como prop visual en la presentación — mostrando el problema que resuelve el POS.
+**Lo que pasó:** Se generó `demo_taqueria_lupita.xlsx` con 4 hojas: Ventas julio (20 registros desordenados con inconsistencias intencionales), Clientes (12 con deudas), Gastos (15 egresos), y Pendientes (notas caóticas que terminan con "¿cuánto vendí esta semana? no sé"). Datos realistas de taquería mexicana. Generado programáticamente con openpyxl.
+**Versión profesional:**
+> "Genera un Excel de demo (`demo_taqueria_lupita.xlsx`) simulando cómo una dueña de taquería lleva sus datos actualmente: ventas desordenadas, clientes con deudas sin seguimiento, gastos mezclados, notas sueltas. Debe verse caótico e inmanejable para contrastar con la solución POS. Incluye 20 ventas de tacos/aguas/quesadillas, 12 clientes, 15 gastos, y una hoja de pendientes que termine con '¿cuánto vendí esta semana? 🤷‍♀️'."
+
+**Lo que me faltó pedir:**
+- Nada — prompt descriptivo con el contexto narrativo de Lupita incluido
+
+**Flujo diferente:** Buen uso del agente como generador de props de presentación. El contexto narrativo ("Lupita dueña de taquería") hizo que los datos fueran ultra-realistas.
+
+---
