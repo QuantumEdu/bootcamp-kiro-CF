@@ -99,12 +99,21 @@ func (h *SaleHandler) CompleteSale(w http.ResponseWriter, r *http.Request) {
 	// Execute use case.
 	sale, err := h.registerUC.Execute(r.Context(), input)
 	if err != nil {
-		h.renderSaleError(w, err.Error())
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 		return
 	}
 
-	// Return success fragment.
-	h.renderSaleSuccess(w, sale)
+	// Return JSON success.
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("HX-Trigger", "ventaCreada")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"id":      sale.ID,
+		"total":   sale.Total,
+		"items":   len(sale.Items),
+	})
 }
 
 // renderSaleError returns an HTMX error fragment.

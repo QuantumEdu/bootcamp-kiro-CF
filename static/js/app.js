@@ -19,9 +19,16 @@ function salesCart() {
             const payload = { items: this.items.map(i => ({ producto_id: i.id, cantidad: i.cantidad, precio_unitario: i.precio })), metodo_pago: this.metodoPago };
             try {
                 const resp = await fetch('/api/ventas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (resp.ok) { this.items = []; htmx.trigger(document.body, 'ventaCreada'); }
-                else { const err = await resp.json(); alert('Error: ' + (err.error || 'No se pudo registrar')); }
-            } catch (e) { alert('Error: ' + e.message); }
+                if (resp.ok) {
+                    const data = await resp.json();
+                    this.items = [];
+                    alert('✅ Venta #' + data.id + ' registrada — Total: $' + data.total.toFixed(2));
+                    if (typeof htmx !== 'undefined') htmx.trigger(document.body, 'ventaCreada');
+                } else {
+                    const err = await resp.json();
+                    alert('Error: ' + (err.error || 'No se pudo registrar'));
+                }
+            } catch (e) { alert('Error de conexión: ' + e.message); }
         }
     };
 }
