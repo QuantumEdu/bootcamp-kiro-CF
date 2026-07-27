@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"strings"
 
 	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 )
@@ -25,23 +26,27 @@ func WithUserContext(r *http.Request, data map[string]interface{}) map[string]in
 }
 
 // RenderPage renders a full page with layout.html wrapping the specified content template.
-// It clones the template set and overrides the "content" block with the specified template.
+// Instead of cloning (which fails after first execution), we execute the content template
+// directly by looking it up and rendering it within the layout context.
 func RenderPage(w http.ResponseWriter, tmpl *template.Template, contentName string, data map[string]interface{}) error {
-	// Clone so we can override "content" without affecting other requests.
-	t, err := tmpl.Clone()
-	if err != nil {
+	// Execute the layout template. The {{template "content" .}} call inside layout.html
+	// will look for a "content" definition. We need to ensure the right one is active.
+	//
+	// Strategy: Execute the specific content template first into a buffer,
+	// then pass it as HTML data to the layout.
+	ct := tmpl.Lookup(contentName)
+	if ct == nil {
+		// Fallback: try the "content" defined block directly
+		return tmpl.ExecuteTemplate(w, "layout.html", data)
+	}
+
+	// Render the content template to get its HTML
+	var buf strings.Builder
+	if err := ct.Execute(&buf, data); err != nil {
 		return err
 	}
 
-	// Look up the content template (try both slash styles for cross-platform).
-	ct := tmpl.Lookup(contentName)
-	if ct == nil {
-		// Content templates define a "content" block — use that directly.
-		// If not found, layout.html will render with empty content.
-		return t.ExecuteTemplate(w, "layout.html", data)
-	}
-
-	// Override "content" in the cloned template with the specific page's tree.
-	t.AddParseTree("content", ct.Tree)
-	return t.ExecuteTemplate(w, "layout.html", data)
+	// Add rendered content as safe HTML to the data
+	data["Content"] = template.HTML(buf.String())
+	return tmpl.ExecuteTemplate(w, "layout.html", data)
 }
