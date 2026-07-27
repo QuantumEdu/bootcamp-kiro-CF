@@ -38,7 +38,7 @@ func (h *AdminConfigHandler) Show(w http.ResponseWriter, r *http.Request) {
 		"HasKey":    encrypted != "",
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	h.tmpl.ExecuteTemplate(w, "layout.html", data)
+	RenderPage(w, h.tmpl, "admin/config.html", data)
 }
 
 // Update handles POST /admin/config — validates non-empty key, encrypts, stores, redirects.

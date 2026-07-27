@@ -33,7 +33,7 @@ func (h *ClientHandler) List(w http.ResponseWriter, r *http.Request) {
 		"Clients":   clients,
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	if err := RenderPage(w, h.tmpl, "clients/list.html", data); err != nil {
 		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -44,7 +44,7 @@ func (h *ClientHandler) CreateForm(w http.ResponseWriter, r *http.Request) {
 		"PageTitle": "Nuevo Cliente",
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	if err := RenderPage(w, h.tmpl, "clients/form.html", data); err != nil {
 		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
 	}
 }

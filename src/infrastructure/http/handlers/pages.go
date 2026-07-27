@@ -48,10 +48,9 @@ func (h *PageHandler) render(w http.ResponseWriter, r *http.Request, title strin
 	case "Metricas", "Dashboard":
 		contentTmpl = "metrics/dashboard.html"
 	}
-	_ = contentTmpl
 
 	data := WithUserContext(r, map[string]interface{}{"PageTitle": title})
-	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	if err := RenderPage(w, h.tmpl, contentTmpl, data); err != nil {
 		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
