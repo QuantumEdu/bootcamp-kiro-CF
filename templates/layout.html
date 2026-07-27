@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS AI-First</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
@@ -110,9 +110,9 @@
                     </div>
                     <div class="border-t border-gray-200 p-3">
                         <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend"
-                              hx-on::after-request="this.reset(); document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight"
-                              class="flex gap-2">
-                            <input type="text" name="query" placeholder="Ej: Cuanto vendi hoy?" autocomplete="off"
+                              class="flex gap-2"
+                              onsubmit="setTimeout(()=>{this.reset();document.getElementById('chat-messages').scrollTop=99999},100)">
+                            <input type="text" name="query" placeholder="Ej: Cuanto vendi hoy?" autocomplete="off" required
                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
                             <button type="submit" class="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>

@@ -699,3 +699,18 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 **Flujo diferente:** El bug de templates es un gotcha conocido de Go html/template. Debió haberse detectado en testing local antes del deploy. Un test E2E que verifica "GET /productos contiene 'Productos'" habría atrapado esto.
 
 ---
+
+## Prompt 34: "ya van 4 iteraciones con un error que debiera ser sim..."
+
+**Lo que pedí:** Frustración por múltiples iteraciones sin resolver los bugs. Los errores: (1) Dashboard muestra $0 y "Error cargando", (2) Productos muestra "Error", (3) Chat AI dice "Respuesta no válida", (4) Búsqueda de productos en ventas no funciona.
+**Lo que pasó:** Root causes identificados: (1-2) MetricsHandler usaba queries SQLite (datetime('now'), strftime, activo=1) que fallan en PostgreSQL. Fix: queries duales con flag isPostgres. (3) DeepSeek envuelve JSON en code fences (```json...```). Fix: stripCodeFences(). (4) System prompt decía "SQLite" generando SQL incompatible. Fix: prompt dinámico según DB. (5) ProductosBuscar usaba ? en vez de $1 para PostgreSQL. La lentitud fue por el ciclo edit→push→CI/CD (4min)→force Lambda update (20s).
+**Versión profesional:**
+> "4 iteraciones sin resolver — el problema es que no estás testeando EN POSTGRES antes de desplegar. Los bugs son: (1) queries SQLite en MetricsHandler (datetime/strftime), (2) DeepSeek envuelve JSON en code fences, (3) system prompt dice SQLite. Fija todos juntos, testea contra la RDS directamente, y despliega una sola vez."
+
+**Lo que me faltó pedir:**
+- Pedir que se probara contra la DB de PostgreSQL localmente antes de desplegar (habría detectado todo en 1 ciclo)
+- Exigir que los fixes se validen con un curl real antes del commit
+
+**Flujo diferente:** La solución correcta desde el inicio era: (1) hacer `go run cmd/server/main.go` apuntando a RDS, (2) verificar /api/productos y /api/chat en el browser LOCAL, (3) solo entonces desplegar. Eso habría sido 1 iteración, no 4.
+
+---
