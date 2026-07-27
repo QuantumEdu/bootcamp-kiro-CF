@@ -314,7 +314,7 @@ func (h *MetricsHandler) ProductosBuscar(w http.ResponseWriter, r *http.Request)
 		var nombre string
 		var precio, stock float64
 		rows.Scan(&id, &nombre, &precio, &stock)
-		html += fmt.Sprintf(`<button type="button" onclick="addToCart(%d, '%s', %.2f)" class="w-full flex items-center justify-between p-2 hover:bg-indigo-50 rounded-lg text-left"><div><p class="text-sm font-medium text-gray-800">%s</p><p class="text-xs text-gray-500">Stock: %.0f</p></div><span class="text-sm font-bold text-indigo-600">$%.2f</span></button>`, id, escJS(nombre), precio, nombre, stock, precio)
+		html += fmt.Sprintf(`<button type="button" onclick="window.dispatchEvent(new CustomEvent('add-to-cart',{detail:{id:%d,nombre:'%s',precio:%.2f}}))" class="w-full flex items-center justify-between p-2 hover:bg-indigo-50 rounded-lg text-left"><div><p class="text-sm font-medium text-gray-800">%s</p><p class="text-xs text-gray-500">Stock: %.0f</p></div><span class="text-sm font-bold text-indigo-600">$%.2f</span></button>`, id, escJS(nombre), precio, nombre, stock, precio)
 	}
 	if html == "" {
 		html = `<p class="text-sm text-gray-400 py-2">Sin resultados</p>`
