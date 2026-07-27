@@ -26,4 +26,10 @@
             <div class="animate-pulse space-y-3"><div class="h-4 bg-gray-200 rounded w-36"></div><div class="h-3 bg-gray-200 rounded w-full"></div></div>
         </div>
     </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <p class="text-sm font-medium text-gray-500 mb-3">Ventas recientes</p>
+        <div hx-get="/api/ventas/recientes" hx-trigger="load, every 30s" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-2"><div class="h-3 bg-gray-200 rounded w-full"></div><div class="h-3 bg-gray-200 rounded w-4/5"></div></div>
+        </div>
+    </div>
 </div>
