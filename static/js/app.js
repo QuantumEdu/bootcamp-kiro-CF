@@ -22,6 +22,8 @@ function salesCart() {
                 if (resp.ok) {
                     const data = await resp.json();
                     this.items = [];
+                    this.search = '';
+                    document.getElementById('product-results').innerHTML = '';
                     alert('✅ Venta #' + data.id + ' registrada — Total: $' + data.total.toFixed(2));
                     if (typeof htmx !== 'undefined') htmx.trigger(document.body, 'ventaCreada');
                 } else {
