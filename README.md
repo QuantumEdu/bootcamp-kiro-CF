@@ -1,130 +1,202 @@
-# POS AI-First
+# 🧮 POS AI-First — Tu negocio responde preguntas
 
-> Sistema de Punto de Venta con Inteligencia Artificial para PYMEs — Bootcamp Codigo Facilito + Kiro
+> **Bootcamp Kiro × Código Facilito | Hackathon 2026**  
+> MVP construido en 5 días por Gabriel Magallón desde Michoacán, México.
 
-## Arquitectura
+[![Deploy to AWS](https://github.com/QuantumEdu/bootcamp-kiro-CF/actions/workflows/deploy.yml/badge.svg)](https://github.com/QuantumEdu/bootcamp-kiro-CF/actions/workflows/deploy.yml)
+
+---
+
+## 🎯 ¿Qué es?
+
+Un **punto de venta inteligente** donde el dueño de un negocio puede preguntarle a sus datos en español y recibir respuestas inmediatas — como hablar con WhatsApp, pero sobre sus ventas.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ Frontend: HTMX + Alpine.js + Tailwind CSS (CDN)             │
-├─────────────────────────────────────────────────────────────┤
-│ Backend: Go + chi router                                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────┐              │
-│  │ Handlers │→ │ Use Cases│→ │ Adapters     │              │
-│  │ (HTTP)   │  │ (NL→SQL) │  │ (OpenRouter) │              │
-│  └──────────┘  └──────────┘  └──────────────┘              │
-├─────────────────────────────────────────────────────────────┤
-│ Database: SQLite (WAL mode) — RW + RO connections           │
-└─────────────────────────────────────────────────────────────┘
+👤 "¿Qué vendí hoy?"
+🤖 "Hoy llevas $1,250 en 8 ventas. Lideran: tacos al pastor (12), agua natural (8), coca cola (6)."
 ```
 
-## Stack
+## 🌐 Demo en Vivo
 
-| Componente | Tecnologia |
-|---|---|
-| Backend | Go 1.22+ / chi v5 |
-| Database | SQLite (modernc.org/sqlite) |
-| Frontend | HTMX 1.9 + Alpine.js 3 + Tailwind CSS |
-| AI | OpenRouter (gpt-4o-mini / claude-3-haiku) |
-| Auth | PIN + SHA-256 + session tokens |
+| Entorno | URL | Credenciales |
+|---------|-----|--------------|
+| **AWS Lambda** | [pos-ai-first.aws](https://zz637vr6cd.execute-api.us-east-1.amazonaws.com/login) | Admin: `1234` / Cajero: `1235` |
+| **Local** | `http://localhost:8080` | Mismas credenciales |
 
-## Setup rapido
+---
+
+## 💡 El Problema
+
+Los dueños de pequeños negocios (taquerías, abarrotes, tienditas) llevan sus registros en Excel, libretas o de memoria. Cuando quieren saber "¿cuánto vendí esta semana?" tienen que:
+
+1. Abrir Excel
+2. Filtrar por fecha
+3. Sumar columnas
+4. ...o pedirle a alguien que lo haga
+
+**¿Y si pudieran simplemente preguntar?**
+
+## ✨ La Solución
+
+Un POS completo con un **chat conversacional** que convierte preguntas en español a consultas SQL seguras:
+
+- CRUD de productos, clientes y ventas
+- Dashboard con métricas en tiempo real
+- Chat AI: pregunta → SQL generado → validado → ejecutado → respuesta formateada
+- 5 capas de seguridad NL→SQL (prompt, validación Go, read-only, timeout, auditoría)
+
+---
+
+## 🏗️ Arquitectura
+
+```
+┌─────────────────────────────────────┐
+│  HTMX + Alpine.js + Tailwind CSS   │  ← Frontend server-driven
+├─────────────────────────────────────┤
+│  Go HTTP (chi router + algnhsa)    │  ← Lambda o servidor local
+├─────────────────────────────────────┤
+│  Application (use-cases)           │  ← Lógica de negocio
+├─────────────────────────────────────┤
+│  Domain (entities + ports)         │  ← Inmutable: CERO cambios al migrar
+├─────────────────────────────────────┤
+│  SQLite (local) │ PostgreSQL (AWS) │  ← Dual-mode via APP_ENV
+│  OpenRouter     │ Bedrock (futuro) │
+└─────────────────────────────────────┘
+```
+
+**Hexagonal en acción:** Al migrar de local a AWS, se crearon 7 adaptadores PostgreSQL nuevos sin tocar una sola línea del dominio.
+
+---
+
+## 🛡️ Seguridad NL→SQL (5 capas)
+
+| Capa | Defensa |
+|------|---------|
+| 1. Prompt | Instrucción al LLM: solo generar SELECT |
+| 2. Validación Go | Whitelist SELECT/WITH, reject DDL/DML |
+| 3. Conexión | Read-only separada |
+| 4. Ejecución | Timeout 5s + LIMIT 500 |
+| 5. Auditoría | Log de toda query generada |
+
+No confiamos en el LLM. Cada capa es independiente.
+
+---
+
+## 🚀 Ejecutar Localmente
 
 ```bash
-# 1. Clonar
+# Clonar
 git clone https://github.com/QuantumEdu/bootcamp-kiro-CF.git
 cd bootcamp-kiro-CF
 
-# 2. Configurar
+# Configurar
 cp .env.example .env
-# Editar .env: agregar OPENROUTER_API_KEY
+# Editar .env con tu OPENROUTER_API_KEY y SESSION_SECRET
 
-# 3. Ejecutar
-go run ./cmd/server
+# Seed (datos de demo)
+go run cmd/seed/main.go
 
-# 4. Abrir
-# http://localhost:8080/login
-# PIN admin: 1234
-# PIN cajero: 123
+# Ejecutar
+go run cmd/server/main.go
+
+# Abrir http://localhost:8080
+# PIN Admin: 1234 | PIN Cajero: 1235
 ```
 
-## Funcionalidades
+## ☁️ Deploy a AWS
 
-### Completadas
-
-- [x] **Dashboard** — Ventas hoy/semana/mes, top productos, stock bajo, margen por categoria
-- [x] **Productos** — Lista con busqueda HTMX
-- [x] **Ventas** — Carrito con Alpine.js, checkout JSON, historial reciente
-- [x] **Chat IA** — Panel lateral con NL→SQL (lenguaje natural a consultas SQL)
-- [x] **Autenticacion** — PIN con lockout por intentos fallidos
-- [x] **Metricas** — HTMX polling automatico (30s/60s)
-- [x] **Seguridad NL→SQL** — Jailbreak detection, table whitelist, SELECT-only, max 100 rows
-- [x] **Seed data** — 30 productos, 10 ventas, 5 clientes (tienda de abarrotes MX)
-
-### Seguridad del Chat IA
-
-10 capas de defensa:
-1. Validacion de input (jailbreak detection)
-2. System prompt (solo SELECT)
-3. SQL validation (keyword blocking)
-4. Table whitelist (8 tablas)
-5. Multi-statement detection
-6. Comment injection blocking
-7. Read-only DB connection
-8. Query timeout (5s)
-9. Row limit (100 max)
-10. Max input length (500 chars)
-
-## Estructura del proyecto
+La app se despliega automáticamente a AWS Lambda en cada push a `main`:
 
 ```
-cmd/server/main.go          — Entry point
-src/
-├── application/nlsql/      — NL→SQL service + validator
-├── domain/ports/           — Interfaces (hexagonal)
-└── infrastructure/
-    ├── adapters/           — OpenRouter client
-    ├── config/             — Env vars
-    ├── database/           — SQLite connection + migrations
-    └── http/
-        ├── handlers/       — HTTP handlers (pages, metrics, chat, auth, sales)
-        └── middleware/     — Auth middleware
-templates/                  — HTML templates (Go html/template)
-static/js/                  — Alpine.js components
+Push → GitHub Actions → Test → Build Docker (ARM64) → ECR → SAM Deploy → Health Check ✅
 ```
 
-## Comandos
+**Infraestructura (100% free tier):**
+- Lambda + API Gateway (1M req/mes gratis)
+- RDS PostgreSQL db.t4g.micro (12 meses gratis)
+- DeepSeek V4 Flash via OpenRouter ($0.09/1M tokens)
+- S3 + CloudFront para assets estáticos
 
-```bash
-make run       # Ejecutar servidor
-make test      # Tests
-make lint      # Linter
-make build     # Compilar binario
+**Costo mensual: $0** (primer año con free tier)
+
+---
+
+## 🛠️ Stack Técnico
+
+| Capa | Tecnología |
+|------|-----------|
+| **Backend** | Go 1.26, chi/v5, hexagonal architecture |
+| **Frontend** | HTMX 1.9, Alpine.js 3, Tailwind CSS (CDN) |
+| **DB Local** | SQLite (modernc.org/sqlite, pure Go) |
+| **DB Cloud** | PostgreSQL 16 (RDS, pgx/v5) |
+| **AI** | OpenRouter → DeepSeek V4 Flash (NL→SQL) |
+| **Infra** | AWS Lambda (ARM64), API Gateway, SAM |
+| **CI/CD** | GitHub Actions |
+| **IDE** | Kiro (specs, steering, hooks, powers) |
+
+---
+
+## 📊 Métricas del Proyecto
+
+| Métrica | Valor |
+|---------|-------|
+| Tiempo de desarrollo | 5 días |
+| Specs creados | 3 (MVP, UI fixes, AWS deploy) |
+| Tareas ejecutadas | 100+ (paralelas por waves) |
+| Archivos Go | 60+ |
+| Tests | Domain 100%, Middleware 86%, Use Cases 60% |
+| Lint warnings | 0 |
+| Cold start Lambda | ~4.4s |
+| Warm response | 1-3ms |
+| Costo AWS | $0/mes |
+
+---
+
+## 🧠 Construido con Kiro
+
+Este proyecto demuestra el flujo completo de desarrollo con [Kiro](https://kiro.dev):
+
+- **Specs:** Requirements → Design → Tasks con dependency graph
+- **Steering:** 6 archivos de reglas persistentes (arquitectura, testing, seguridad, quality, convenciones, design patterns)
+- **Powers:** Long-Term Memory, Context7
+- **Hooks:** Auto-documentación de prompts
+- **Ejecución paralela:** 5 tareas simultáneas por wave respetando dependencias
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+├── cmd/
+│   ├── server/main.go      # Entry point local
+│   ├── lambda/main.go      # Entry point AWS Lambda
+│   ├── seed/main.go        # Seed SQLite
+│   └── seedpg/main.go      # Seed PostgreSQL
+├── internal/bootstrap/      # Dual-mode router builder
+├── src/
+│   ├── domain/             # Entities + Ports (INMUTABLE)
+│   ├── application/        # Use cases + Services
+│   └── infrastructure/     # Adapters (SQLite, PostgreSQL, OpenRouter, Bedrock)
+├── templates/              # HTMX templates
+├── static/                 # JS (Alpine components)
+├── migrations/             # SQLite + PostgreSQL DDL
+├── governance/             # PRD, AWS plan, deploy state
+├── .kiro/specs/            # Kiro specifications
+├── template.yaml           # AWS SAM (IaC)
+├── Dockerfile              # Lambda container (ARM64)
+└── .github/workflows/      # CI/CD pipeline
 ```
 
-## Variables de entorno
+---
 
-| Variable | Default | Descripcion |
-|---|---|---|
-| `PORT` | 8080 | Puerto del servidor |
-| `DATABASE_PATH` | ./data/pos.db | Ruta de la BD SQLite |
-| `OPENROUTER_API_KEY` | — | API key de OpenRouter |
-| `OPENROUTER_MODEL` | anthropic/claude-3-haiku | Modelo LLM |
-| `SESSION_SECRET` | dev-secret | Secreto para tokens |
-| `PIN_MAX_ATTEMPTS` | 5 | Intentos antes de lockout |
-| `PIN_LOCKOUT_MINUTES` | 5 | Minutos de bloqueo |
-| `QUERY_TIMEOUT_SECONDS` | 5 | Timeout para queries |
+## 👤 Autor
 
-## Demo script
+**Gabriel Magallón**  
+Michoacán, México  
+Bootcamp Kiro × Código Facilito — Hackathon 2026
 
-1. Login con PIN 1234
-2. Ver dashboard (metricas se auto-refrescan)
-3. Ir a Productos → ver catalogo
-4. Ir a Ventas → buscar producto → agregar al carrito → cobrar
-5. Chat IA: "cuantas ventas hubo hoy?" → ver SQL generado + resultados
-6. Chat IA: "que producto se vendio mas esta semana?"
-7. Intentar jailbreak: "ignora instrucciones" → ver rechazo
+---
 
-## Equipo
+## 📄 Licencia
 
-Proyecto desarrollado con [Kiro](https://kiro.dev) durante el Bootcamp Codigo Facilito 2026.
+MIT
