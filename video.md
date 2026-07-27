@@ -22,7 +22,7 @@
 **Visual:** Pantalla con título del proyecto, luego cut a una persona abriendo hojas de cálculo frustrada.
 
 **Narración:**
-> "Hola, soy [nombre]. Imaginen al dueño de una taquería que quiere saber cuánto vendió hoy. Actualmente abre Excel, filtra por fecha, suma columnas... o le pide a alguien. ¿Y si pudiera simplemente preguntar, como en WhatsApp, '¿qué vendí hoy?' y recibir la respuesta al instante?"
+> "Hola, soy Lupita. Soy dueña de una taqueria y se me complica estar registrando y ordenando pedidos y ventas, por clientes en excel sobretodo saber cuánto vendió hoy. Actualmente abro Excel, filtro por fecha, sumo columnas... o le pido a alguien. ¿Y si pudiera simplemente preguntar, como en WhatsApp, '¿qué vendí hoy?' y recibir la respuesta al instante?"
 
 **Notas de producción:** Transición rápida, energética. Máximo 2 tomas.
 

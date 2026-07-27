@@ -12,7 +12,6 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -106,23 +105,10 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 		clientRepo := adapters.NewPostgresClientRepository(pool)
 		configRepo := adapters.NewPostgresConfigRepository(pool)
 
-		// Bedrock AI service
-		bedrockClient := bedrockruntime.New(bedrockruntime.Options{
-			Region: cfg.BedrockRegion,
-		})
-		bedrockCfg := adapters.BedrockConfig{
-			ModelID:     cfg.BedrockModelID,
-			Region:      cfg.BedrockRegion,
-			MaxTokens:   cfg.MaxTokens,
-			Temperature: cfg.Temperature,
-		}
-		_ = adapters.NewBedrockQueryService(bedrockClient, bedrockCfg, schema)
-
-		// NL-SQL service for Lambda mode — uses Bedrock via the nlsql service
-		// The nlsql.Service currently takes *adapters.OpenRouterClient directly.
-		// For Lambda, we create a nil OpenRouter client and use a Bedrock-backed service instead.
-		// TODO: Refactor nlsql.Service to accept ports.AIQueryService interface
-		nlsqlService := nlsql.NewService(nil, readDB, schema, cfg.QueryTimeoutSeconds)
+		// AI service — use OpenRouter for now (Bedrock requires model access approval)
+		// OpenRouter works immediately with an API key
+		openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
+		nlsqlService := nlsql.NewService(openRouter, readDB, schema, cfg.QueryTimeoutSeconds)
 		nlsqlService.SetLogger(nlsql.NewQueryLogger(writeDB))
 
 		// pgx session store
@@ -214,11 +200,9 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 	}
 	r.Use(sessionManager.LoadAndSave)
 
-	// Static files — only in local mode (CloudFront handles in Lambda)
-	if cfg.AppEnv != "lambda" {
-		fileServer := http.FileServer(http.Dir(StaticDir))
-		r.Handle("/static/*", http.StripPrefix("/static/", fileServer))
-	}
+	// Static files — serve from Lambda too (until CloudFront is properly configured)
+	fileServer := http.FileServer(http.Dir(StaticDir))
+	r.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
 	// Health
 	r.Get("/health", healthHandler(pool, cfg.AppEnv))

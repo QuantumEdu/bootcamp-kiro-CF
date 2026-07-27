@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/internal/bootstrap"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/config"
@@ -37,6 +38,8 @@ func main() {
 		BedrockRegion:       lambdaCfg.BedrockRegion,
 		MaxTokens:           lambdaCfg.MaxTokens,
 		Temperature:         lambdaCfg.Temperature,
+		OpenRouterAPIKey:    lambdaCfg.OpenRouterAPIKey,
+		OpenRouterModel:     lambdaCfg.OpenRouterModel,
 		QueryTimeoutSeconds: 5,
 	}
 
@@ -52,4 +55,11 @@ func main() {
 
 	// Start the Lambda handler — converts API Gateway events to HTTP requests.
 	algnhsa.ListenAndServe(router, nil)
+}
+
+func getEnvDefault(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
 }

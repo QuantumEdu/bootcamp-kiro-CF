@@ -8,5 +8,6 @@ RUN CGO_ENABLED=0 GOARCH=arm64 GOOS=linux go build -o /handler cmd/lambda/main.g
 FROM public.ecr.aws/lambda/provided:al2-arm64
 COPY --from=builder /handler /var/runtime/bootstrap
 COPY templates/ /var/task/templates/
+COPY static/ /var/task/static/
 WORKDIR /var/task
 CMD ["bootstrap"]

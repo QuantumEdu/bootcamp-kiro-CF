@@ -12,22 +12,26 @@ import (
 
 // AISecretPayload represents the JSON structure stored in the AI secret.
 type AISecretPayload struct {
-	ModelID     string  `json:"model_id"`
-	Region      string  `json:"region"`
-	MaxTokens   int     `json:"max_tokens"`
-	Temperature float64 `json:"temperature"`
+	ModelID         string  `json:"model_id"`
+	Region          string  `json:"region"`
+	MaxTokens       int     `json:"max_tokens"`
+	Temperature     float64 `json:"temperature"`
+	OpenRouterKey   string  `json:"openrouter_api_key"`
+	OpenRouterModel string  `json:"openrouter_model"`
 }
 
 // LambdaConfig holds configuration values retrieved from Secrets Manager
 // for use in Lambda mode. It provides the fields that the bootstrap package
-// needs to wire PostgreSQL, session management, and Bedrock adapters.
+// needs to wire PostgreSQL, session management, and AI adapters.
 type LambdaConfig struct {
-	DatabaseURL   string
-	SessionSecret string
-	BedrockModelID string
-	BedrockRegion  string
-	MaxTokens      int
-	Temperature    float64
+	DatabaseURL      string
+	SessionSecret    string
+	BedrockModelID   string
+	BedrockRegion    string
+	MaxTokens        int
+	Temperature      float64
+	OpenRouterAPIKey string
+	OpenRouterModel  string
 }
 
 // SecretsLoader retrieves and caches secrets from AWS Secrets Manager.
@@ -119,11 +123,13 @@ func (s *SecretsLoader) LoadConfig(ctx context.Context) (*LambdaConfig, error) {
 	}
 
 	return &LambdaConfig{
-		DatabaseURL:    dbURL,
-		SessionSecret:  sessionKey,
-		BedrockModelID: aiPayload.ModelID,
-		BedrockRegion:  aiPayload.Region,
-		MaxTokens:      aiPayload.MaxTokens,
-		Temperature:    aiPayload.Temperature,
+		DatabaseURL:      dbURL,
+		SessionSecret:    sessionKey,
+		BedrockModelID:   aiPayload.ModelID,
+		BedrockRegion:    aiPayload.Region,
+		MaxTokens:        aiPayload.MaxTokens,
+		Temperature:      aiPayload.Temperature,
+		OpenRouterAPIKey: aiPayload.OpenRouterKey,
+		OpenRouterModel:  aiPayload.OpenRouterModel,
 	}, nil
 }

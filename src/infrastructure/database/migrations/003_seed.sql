@@ -2,7 +2,7 @@
 
 INSERT OR IGNORE INTO usuarios (id, nombre, pin_hash, rol) VALUES
 (1, 'Admin', '$2a$10$rxyqum0rxJ9htmlD5QYWE.9CY1XeKQfq7b4BT3RVF.e71GvccInIC', 'admin'),
-(2, 'Maria Cajera', '$2a$10$hnm.vyyIRYJS3u/zENTeBOiuvS85cMGd1mlT8xw8kxyETf.UFOp1G', 'cajero');
+(2, 'Maria Cajera', '$2a$10$gMIV6AcW5w1HCobQdW/gAO5Mkv7jxRNhXoGxWYg8CK37OeXJJCQT2', 'cajero');
 
 INSERT OR IGNORE INTO categorias (id, nombre, descripcion) VALUES
 (1, 'Bebidas', 'Refrescos, aguas, jugos'),
