@@ -1,202 +1,232 @@
-# 🧮 POS AI-First — Tu negocio responde preguntas
+# POS AI-First — Punto de Venta Inteligente
 
-> **Bootcamp Kiro × Código Facilito | Hackathon 2026**  
-> MVP construido en 5 días por Gabriel Magallón desde Michoacán, México.
+> "¿Qué vendí hoy?" — Pregunta en español, obtén respuestas de tus datos al instante.
 
 [![Deploy to AWS](https://github.com/QuantumEdu/bootcamp-kiro-CF/actions/workflows/deploy.yml/badge.svg)](https://github.com/QuantumEdu/bootcamp-kiro-CF/actions/workflows/deploy.yml)
 
 ---
 
-## 🎯 ¿Qué es?
+## 🎯 Resumen
 
-Un **punto de venta inteligente** donde el dueño de un negocio puede preguntarle a sus datos en español y recibir respuestas inmediatas — como hablar con WhatsApp, pero sobre sus ventas.
+**POS AI-First** es un punto de venta con agente conversacional integrado, desarrollado como MVP funcional en 5 días para el **Bootcamp Kiro × Código Facilito × AWS | Hackathon 2026**.
 
-```
-👤 "¿Qué vendí hoy?"
-🤖 "Hoy llevas $1,250 en 8 ventas. Lideran: tacos al pastor (12), agua natural (8), coca cola (6)."
-```
+El sistema permite a dueños de pequeños negocios (taquerías, tiendas de abarrotes, etc.) gestionar productos, ventas e inventario, y además **hacer preguntas en lenguaje natural** sobre sus datos — como enviar un mensaje por WhatsApp.
 
-## 🌐 Demo en Vivo
-
-| Entorno | URL | Credenciales |
-|---------|-----|--------------|
-| **AWS Lambda** | [pos-ai-first.aws](https://zz637vr6cd.execute-api.us-east-1.amazonaws.com/login) | Admin: `1234` / Cajero: `1235` |
-| **Local** | `http://localhost:8080` | Mismas credenciales |
+**Presentado por:** Gabriel Magallón  
+**Fecha:** 26 de julio de 2026  
+**Ubicación:** Michoacán, México
 
 ---
 
-## 💡 El Problema
+## 🌐 Demo en vivo
 
-Los dueños de pequeños negocios (taquerías, abarrotes, tienditas) llevan sus registros en Excel, libretas o de memoria. Cuando quieren saber "¿cuánto vendí esta semana?" tienen que:
+| Recurso | URL |
+|---------|-----|
+| **App (AWS Lambda)** | https://zz637vr6cd.execute-api.us-east-1.amazonaws.com |
+| **Health Check** | https://zz637vr6cd.execute-api.us-east-1.amazonaws.com/health |
 
-1. Abrir Excel
-2. Filtrar por fecha
-3. Sumar columnas
-4. ...o pedirle a alguien que lo haga
+**Credenciales de acceso:**
+- Admin: PIN `1234`
+- Cajero: PIN `1235`
 
-**¿Y si pudieran simplemente preguntar?**
+> ⚠️ La app puede estar desactivada fuera del horario de demo. Para reactivar: ver sección de Deploy.
 
-## ✨ La Solución
+---
 
-Un POS completo con un **chat conversacional** que convierte preguntas en español a consultas SQL seguras:
+## 🚀 ¿Qué problema resuelve?
 
-- CRUD de productos, clientes y ventas
-- Dashboard con métricas en tiempo real
-- Chat AI: pregunta → SQL generado → validado → ejecutado → respuesta formateada
-- 5 capas de seguridad NL→SQL (prompt, validación Go, read-only, timeout, auditoría)
+Los dueños de pequeños negocios:
+- No tienen tiempo de revisar reportes
+- Dependen de Excel desordenados para registrar ventas
+- Las preguntas son simples: "¿Qué vendí hoy?", "¿Qué se está agotando?"
+- La respuesta debería ser tan fácil como preguntar en WhatsApp
+
+**POS AI-First** convierte preguntas en español → SQL seguro → respuestas formateadas, todo en menos de 5 segundos.
+
+---
+
+## ✨ Features
+
+### Core POS
+- 🛒 CRUD de productos con categorías y SKU
+- 💰 Registro de ventas con múltiples métodos de pago
+- 👥 Gestión de clientes
+- 📊 Dashboard con métricas en tiempo real (HTMX auto-refresh)
+- 🔐 Autenticación por PIN (bcrypt, lockout por intentos)
+
+### AI Chat (NL→SQL)
+- 💬 Preguntas en español sobre ventas, productos, inventario
+- 🧠 Generación de SQL via OpenRouter (DeepSeek V4 Flash)
+- 🛡️ 5 capas de seguridad (prompt, validación Go, read-only, timeout, auditoría)
+- 📋 Respuestas formateadas con explicación
+
+### Admin
+- ⚙️ Panel de configuración para API keys (AES-GCM cifrado)
+- 🔒 Rutas admin protegidas por rol (RequireRole middleware)
 
 ---
 
 ## 🏗️ Arquitectura
 
 ```
-┌─────────────────────────────────────┐
-│  HTMX + Alpine.js + Tailwind CSS   │  ← Frontend server-driven
-├─────────────────────────────────────┤
-│  Go HTTP (chi router + algnhsa)    │  ← Lambda o servidor local
-├─────────────────────────────────────┤
-│  Application (use-cases)           │  ← Lógica de negocio
-├─────────────────────────────────────┤
-│  Domain (entities + ports)         │  ← Inmutable: CERO cambios al migrar
-├─────────────────────────────────────┤
-│  SQLite (local) │ PostgreSQL (AWS) │  ← Dual-mode via APP_ENV
-│  OpenRouter     │ Bedrock (futuro) │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  Browser (HTMX + Alpine.js + Tailwind CSS)          │
+├─────────────────────────────────────────────────────┤
+│  API Gateway HTTP API → Lambda (Go ARM64, 512MB)    │
+├─────────────────────────────────────────────────────┤
+│  Application Layer (Use Cases, NL→SQL Service)      │
+├─────────────────────────────────────────────────────┤
+│  Domain (Entities, Ports, Value Objects)            │
+├─────────────────────────────────────────────────────┤
+│  Infrastructure Adapters                            │
+│  ├── PostgreSQL (pgxpool) — AWS RDS                 │
+│  ├── SQLite (modernc.org) — Local dev              │
+│  ├── OpenRouter (DeepSeek V4 Flash) — NL→SQL       │
+│  └── Bedrock (Claude 3 Haiku) — AWS production     │
+└─────────────────────────────────────────────────────┘
 ```
 
-**Hexagonal en acción:** Al migrar de local a AWS, se crearon 7 adaptadores PostgreSQL nuevos sin tocar una sola línea del dominio.
+**Hexagonal Architecture:** El dominio no importa frameworks. Los adaptadores son intercambiables. La migración de SQLite→PostgreSQL fue **7 archivos nuevos, zero cambios en dominio**.
+
+### Dual-Mode Bootstrap
+
+```go
+switch cfg.AppEnv {
+case "lambda":  // PostgreSQL + Bedrock + pgx sessions
+default:        // SQLite + OpenRouter + SQLite sessions
+}
+```
 
 ---
 
-## 🛡️ Seguridad NL→SQL (5 capas)
+## 🔒 Seguridad NL→SQL (5 capas)
 
 | Capa | Defensa |
 |------|---------|
-| 1. Prompt | Instrucción al LLM: solo generar SELECT |
-| 2. Validación Go | Whitelist SELECT/WITH, reject DDL/DML |
-| 3. Conexión | Read-only separada |
-| 4. Ejecución | Timeout 5s + LIMIT 500 |
-| 5. Auditoría | Log de toda query generada |
-
-No confiamos en el LLM. Cada capa es independiente.
-
----
-
-## 🚀 Ejecutar Localmente
-
-```bash
-# Clonar
-git clone https://github.com/QuantumEdu/bootcamp-kiro-CF.git
-cd bootcamp-kiro-CF
-
-# Configurar
-cp .env.example .env
-# Editar .env con tu OPENROUTER_API_KEY y SESSION_SECRET
-
-# Seed (datos de demo)
-go run cmd/seed/main.go
-
-# Ejecutar
-go run cmd/server/main.go
-
-# Abrir http://localhost:8080
-# PIN Admin: 1234 | PIN Cajero: 1235
-```
-
-## ☁️ Deploy a AWS
-
-La app se despliega automáticamente a AWS Lambda en cada push a `main`:
-
-```
-Push → GitHub Actions → Test → Build Docker (ARM64) → ECR → SAM Deploy → Health Check ✅
-```
-
-**Infraestructura (100% free tier):**
-- Lambda + API Gateway (1M req/mes gratis)
-- RDS PostgreSQL db.t4g.micro (12 meses gratis)
-- DeepSeek V4 Flash via OpenRouter ($0.09/1M tokens)
-- S3 + CloudFront para assets estáticos
-
-**Costo mensual: $0** (primer año con free tier)
+| 1. Prompt | Instrucción al LLM: "solo genera SELECT" |
+| 2. Validación Go | Whitelist SELECT/WITH, reject DDL/DML keywords |
+| 3. Conexión | SQLite/PostgreSQL read-only separada |
+| 4. Ejecución | Timeout 5s, LIMIT 500 registros |
+| 5. Auditoría | Log de toda query generada antes de ejecutar |
 
 ---
 
 ## 🛠️ Stack Técnico
 
-| Capa | Tecnología |
-|------|-----------|
-| **Backend** | Go 1.26, chi/v5, hexagonal architecture |
-| **Frontend** | HTMX 1.9, Alpine.js 3, Tailwind CSS (CDN) |
-| **DB Local** | SQLite (modernc.org/sqlite, pure Go) |
-| **DB Cloud** | PostgreSQL 16 (RDS, pgx/v5) |
-| **AI** | OpenRouter → DeepSeek V4 Flash (NL→SQL) |
-| **Infra** | AWS Lambda (ARM64), API Gateway, SAM |
-| **CI/CD** | GitHub Actions |
-| **IDE** | Kiro (specs, steering, hooks, powers) |
+| Componente | Tecnología |
+|------------|-----------|
+| Backend | Go 1.26 (chi/v5 router) |
+| Frontend | HTMX + Alpine.js + Tailwind CSS (CDN) |
+| DB Local | SQLite (modernc.org/sqlite, pure Go) |
+| DB Producción | PostgreSQL 16 (Amazon RDS, pgx/v5) |
+| AI | OpenRouter → DeepSeek V4 Flash ($0.09/1M tokens) |
+| Compute | AWS Lambda (ARM64, container image) |
+| IaC | AWS SAM (template.yaml) |
+| CI/CD | GitHub Actions (test → build → deploy → health check) |
+| Session | alexedwards/scs (pgxstore para AWS) |
+| Crypto | AES-GCM (API keys cifradas en reposo) |
 
 ---
 
-## 📊 Métricas del Proyecto
-
-| Métrica | Valor |
-|---------|-------|
-| Tiempo de desarrollo | 5 días |
-| Specs creados | 3 (MVP, UI fixes, AWS deploy) |
-| Tareas ejecutadas | 100+ (paralelas por waves) |
-| Archivos Go | 60+ |
-| Tests | Domain 100%, Middleware 86%, Use Cases 60% |
-| Lint warnings | 0 |
-| Cold start Lambda | ~4.4s |
-| Warm response | 1-3ms |
-| Costo AWS | $0/mes |
-
----
-
-## 🧠 Construido con Kiro
-
-Este proyecto demuestra el flujo completo de desarrollo con [Kiro](https://kiro.dev):
-
-- **Specs:** Requirements → Design → Tasks con dependency graph
-- **Steering:** 6 archivos de reglas persistentes (arquitectura, testing, seguridad, quality, convenciones, design patterns)
-- **Powers:** Long-Term Memory, Context7
-- **Hooks:** Auto-documentación de prompts
-- **Ejecución paralela:** 5 tareas simultáneas por wave respetando dependencias
-
----
-
-## 📁 Estructura del Proyecto
+## 📦 Estructura del proyecto
 
 ```
+pos-ai-first/
 ├── cmd/
-│   ├── server/main.go      # Entry point local
-│   ├── lambda/main.go      # Entry point AWS Lambda
-│   ├── seed/main.go        # Seed SQLite
-│   └── seedpg/main.go      # Seed PostgreSQL
-├── internal/bootstrap/      # Dual-mode router builder
+│   ├── server/main.go       # Entry point local (net/http)
+│   ├── lambda/main.go       # Entry point AWS (algnhsa)
+│   ├── seed/main.go         # Seed SQLite local
+│   └── seedpg/main.go       # Seed PostgreSQL RDS
+├── internal/bootstrap/       # Dual-mode router builder
 ├── src/
-│   ├── domain/             # Entities + Ports (INMUTABLE)
-│   ├── application/        # Use cases + Services
-│   └── infrastructure/     # Adapters (SQLite, PostgreSQL, OpenRouter, Bedrock)
-├── templates/              # HTMX templates
-├── static/                 # JS (Alpine components)
-├── migrations/             # SQLite + PostgreSQL DDL
-├── governance/             # PRD, AWS plan, deploy state
-├── .kiro/specs/            # Kiro specifications
-├── template.yaml           # AWS SAM (IaC)
-├── Dockerfile              # Lambda container (ARM64)
-└── .github/workflows/      # CI/CD pipeline
+│   ├── domain/              # Entities, Ports, Value Objects (0 deps)
+│   ├── application/         # Use Cases, NL-SQL Service
+│   └── infrastructure/      # Adapters, HTTP, Config
+├── templates/               # HTML templates (HTMX)
+├── static/                  # JS (Alpine components)
+├── migrations/
+│   ├── 001_init.sql         # SQLite schema
+│   └── postgres/001_init.sql # PostgreSQL schema
+├── Dockerfile               # Lambda container (ARM64)
+├── template.yaml            # AWS SAM IaC
+└── .github/workflows/       # CI/CD pipeline
 ```
+
+---
+
+## 🚀 Cómo ejecutar
+
+### Local (desarrollo)
+
+```bash
+# Clonar y configurar
+git clone https://github.com/QuantumEdu/bootcamp-kiro-CF.git
+cd bootcamp-kiro-CF
+cp .env.example .env
+# Editar .env con tu OPENROUTER_API_KEY y SESSION_SECRET
+
+# Ejecutar
+go run cmd/server/main.go
+# → http://localhost:8080
+```
+
+### AWS (producción)
+
+```bash
+# Prerequisitos: AWS CLI configurado, SAM CLI instalado
+sam deploy --guided
+
+# O via CI/CD: push a main dispara deploy automático
+git push origin main
+```
+
+### Reactivar la app (si está desactivada)
+
+```bash
+aws apigatewayv2 create-stage --api-id zz637vr6cd --stage-name '$default' --auto-deploy --region us-east-1
+```
+
+---
+
+## 💰 Costos
+
+| Servicio | Free Tier | Post-free |
+|----------|-----------|-----------|
+| Lambda | 1M req/mes GRATIS (always free) | ~$0.20/1M |
+| RDS PostgreSQL | 12 meses gratis (t4g.micro) | ~$13/mes |
+| OpenRouter (DeepSeek) | Pay-per-use ($0.09/1M tokens) | ~$2/mes |
+| S3 + CloudFront | 5GB + 1TB gratis | ~$1/mes |
+| **Total año 1** | | **~$0-4/mes** |
+
+---
+
+## 🏆 Desarrollado con Kiro
+
+Este proyecto demuestra el poder del **desarrollo asistido por agentes**:
+
+- **Specs workflow:** Requirements → Design → Tasks con ejecución paralela por waves
+- **Steering files:** 6 archivos de reglas persistentes (arquitectura, testing, seguridad, quality, convenciones, patrones)
+- **Powers:** Long-Term Memory para persistencia entre sesiones, Context7 para docs
+- **Hooks:** Auto-documentación de prompts, lint on save
+- **Task orchestration:** 5 subagentes ejecutando tareas en paralelo respetando DAG de dependencias
+
+**Métricas:**
+- 3 specs creados (100+ tareas)
+- Deploy a AWS en ~4 minutos (push → live)
+- Cold start: 4.4s → warm: 1-3ms
+- 10,000+ líneas de Go
+- Zero lint warnings
+- Dominio: 100% coverage
+
+---
+
+## 📄 Licencia
+
+Proyecto desarrollado para el Bootcamp Kiro × Código Facilito × AWS — Hackathon 2026.
 
 ---
 
 ## 👤 Autor
 
 **Gabriel Magallón**  
-Michoacán, México  
-Bootcamp Kiro × Código Facilito — Hackathon 2026
-
----
-
-## 📄 Licencia
-
-MIT
+Michoacán, México | Julio 2026

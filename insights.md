@@ -685,3 +685,17 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 **Flujo diferente:** Correr la app localmente primero (`go run cmd/server/main.go`) y verificar todos los flujos ANTES de desplegar es más rápido que iterar via CI/CD (4 min por ciclo).
 
 ---
+
+## Prompt 33: "Continua el mismo error en aws..."
+
+**Lo que pedí:** Fix 3 bugs: (1) páginas muestran el mismo contenido, (2) chat AI no envía peticiones, (3) cajero no accede. Plus README profesional.
+**Lo que pasó:** Root cause del bug #1: Go html/template only keeps ONE `{{define "content"}}` block — the last file parsed wins for ALL pages. Fix: removed all `{{define "content"}}` wrappers from templates, changed to buffer-based rendering (RenderPage renders content → passes as template.HTML to layout). Also fixed: path normalization (filepath.ToSlash), all handlers updated to use RenderPage. Cajero PIN changed to 1235 (4 digits). Static assets now served from Lambda. OpenRouter key+DeepSeek configured in Secrets Manager.
+**Versión profesional:**
+> "3 bugs en AWS: (1) GET /productos y GET / devuelven el mismo HTML — root cause es el template namespace de Go. (2) Chat AI no responde al escribir. (3) Cajero no entra con PIN 123. Debug con CloudWatch logs, fix template rendering, update PIN, configure OpenRouter secret."
+
+**Lo que me faltó pedir:**
+- Nada — reportó los 3 bugs claramente con screenshot
+
+**Flujo diferente:** El bug de templates es un gotcha conocido de Go html/template. Debió haberse detectado en testing local antes del deploy. Un test E2E que verifica "GET /productos contiene 'Productos'" habría atrapado esto.
+
+---
