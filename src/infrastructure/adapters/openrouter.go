@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -145,10 +146,29 @@ func (c *OpenRouterClient) callAPI(ctx context.Context, model, userQuery, system
 	}
 
 	var nlResp NLSQLResponse
-	if err := json.Unmarshal([]byte(cr.Choices[0].Message.Content), &nlResp); err != nil {
+	content := cr.Choices[0].Message.Content
+	// Strip markdown code fences if present (DeepSeek sometimes wraps JSON)
+	content = stripCodeFences(content)
+	if err := json.Unmarshal([]byte(content), &nlResp); err != nil {
 		return nil, ErrAIMalformedResponse
 	}
 	return &nlResp, nil
+}
+
+// stripCodeFences removes ```json ... ``` wrappers from LLM responses.
+func stripCodeFences(s string) string {
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "```") {
+		// Remove first line (```json or ```)
+		if idx := strings.Index(s, "\n"); idx != -1 {
+			s = s[idx+1:]
+		}
+		// Remove trailing ```
+		if idx := strings.LastIndex(s, "```"); idx != -1 {
+			s = s[:idx]
+		}
+	}
+	return strings.TrimSpace(s)
 }
 
 // classifyHTTPError maps HTTP status codes to domain-friendly errors.

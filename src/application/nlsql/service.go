@@ -28,6 +28,7 @@ type Service struct {
 	schema     string
 	timeout    time.Duration
 	logger     *QueryLogger
+	isPostgres bool
 }
 
 // NewService creates a new NL→SQL service.
@@ -38,6 +39,11 @@ func NewService(openRouter *adapters.OpenRouterClient, readDB *sql.DB, schema st
 		schema:     schema,
 		timeout:    time.Duration(timeoutSecs) * time.Second,
 	}
+}
+
+// SetPostgres enables PostgreSQL-specific prompt syntax.
+func (s *Service) SetPostgres(pg bool) {
+	s.isPostgres = pg
 }
 
 // SetLogger attaches a QueryLogger to the service. Nil-safe: if not set, logging is skipped.
@@ -174,11 +180,20 @@ func (s *Service) executeQuery(ctx context.Context, sqlQuery string) ([]string, 
 }
 
 func (s *Service) buildSystemPrompt() string {
-	return fmt.Sprintf(`Eres un asistente que convierte lenguaje natural a SQL para SQLite (sistema POS).
+	dbType := "SQLite"
+	dateToday := "date(v.created_at) = date('now')"
+	dateLast7 := "v.created_at >= datetime('now', '-7 days')"
+	if s.isPostgres {
+		dbType = "PostgreSQL"
+		dateToday = "v.created_at >= CURRENT_DATE"
+		dateLast7 = "v.created_at >= NOW() - INTERVAL '7 days'"
+	}
+
+	return fmt.Sprintf(`Eres un asistente que convierte lenguaje natural a SQL para %s (sistema POS).
 
 REGLAS:
 1. Solo genera SELECT. NUNCA INSERT/UPDATE/DELETE/DROP/ALTER/CREATE.
-2. Sintaxis SQLite.
+2. Sintaxis %s.
 3. Si no puedes, responde: {"sql": null, "error": "motivo", "explanation": "..."}
 
 SCHEMA:
@@ -198,10 +213,10 @@ GLOSARIO:
 
 EJEMPLOS:
 User: "cuantos productos vendi esta semana?"
-{"sql": "SELECT COUNT(DISTINCT vi.producto_id) FROM venta_items vi JOIN ventas v ON vi.venta_id = v.id WHERE v.created_at >= datetime('now', '-7 days')", "explanation": "Productos distintos vendidos en 7 dias", "error": null}
+{"sql": "SELECT COUNT(DISTINCT vi.producto_id) FROM venta_items vi JOIN ventas v ON vi.venta_id = v.id WHERE %s", "explanation": "Productos distintos vendidos en 7 dias", "error": null}
 
 User: "mostrame las ventas de hoy"
-{"sql": "SELECT v.id, v.total, v.metodo_pago, v.created_at FROM ventas v WHERE date(v.created_at) = date('now') ORDER BY v.created_at DESC", "explanation": "Ventas del dia actual", "error": null}
+{"sql": "SELECT v.id, v.total, v.metodo_pago, v.created_at FROM ventas v WHERE %s ORDER BY v.created_at DESC", "explanation": "Ventas del dia actual", "error": null}
 
-Responde SIEMPRE JSON: {"sql": "SELECT ...", "explanation": "...", "error": null}`, s.schema)
+Responde SIEMPRE JSON: {"sql": "SELECT ...", "explanation": "...", "error": null}`, dbType, dbType, s.schema, dateLast7, dateToday)
 }

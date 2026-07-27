@@ -109,6 +109,7 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 		// OpenRouter works immediately with an API key
 		openRouter := adapters.NewOpenRouterClient(cfg.OpenRouterAPIKey, cfg.OpenRouterModel)
 		nlsqlService := nlsql.NewService(openRouter, readDB, schema, cfg.QueryTimeoutSeconds)
+		nlsqlService.SetPostgres(true)
 		nlsqlService.SetLogger(nlsql.NewQueryLogger(writeDB))
 
 		// pgx session store
