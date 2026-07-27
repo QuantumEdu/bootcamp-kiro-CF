@@ -179,11 +179,17 @@ func (h *MetricsHandler) ClientesFrecuentes(w http.ResponseWriter, r *http.Reque
 
 // MargenCategoria returns profit margins by category.
 func (h *MetricsHandler) MargenCategoria(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(`
-		SELECT COALESCE(c.nombre, 'Sin categoria') as cat, COUNT(p.id) as prods,
+	q := `SELECT COALESCE(c.nombre, 'Sin categoria') as cat, COUNT(p.id) as prods,
 		       COALESCE(AVG(CASE WHEN p.precio_venta > 0 THEN ((p.precio_venta - p.precio_compra) / p.precio_venta) * 100 ELSE 0 END), 0) as pct
 		FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id
-		WHERE p.activo = 1 GROUP BY p.categoria_id ORDER BY pct DESC`)
+		WHERE p.activo = 1 GROUP BY p.categoria_id ORDER BY pct DESC`
+	if h.isPostgres {
+		q = `SELECT COALESCE(c.nombre, 'Sin categoria') as cat, COUNT(p.id) as prods,
+		       COALESCE(AVG(CASE WHEN p.precio_venta > 0 THEN ((p.precio_venta - p.precio_compra) / p.precio_venta) * 100 ELSE 0 END), 0) as pct
+		FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id
+		WHERE p.activo = true GROUP BY c.nombre ORDER BY pct DESC`
+	}
+	rows, err := h.db.Query(q)
 	if err != nil {
 		renderErr(w, "Error cargando margenes")
 		return

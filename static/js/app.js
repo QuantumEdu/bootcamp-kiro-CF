@@ -26,7 +26,11 @@ function salesCart() {
     };
 }
 
+// addToCart — finds the Alpine component and adds the product.
+// Works with Alpine.js v3 using the _x_dataStack property.
 function addToCart(id, nombre, precio) {
     const el = document.querySelector('[x-data]');
-    if (el && el.__x) { el.__x.$data.addItem({ id, nombre, precio }); }
+    if (el && el._x_dataStack && el._x_dataStack[0]) {
+        el._x_dataStack[0].addItem({ id: id, nombre: nombre, precio: precio });
+    }
 }
