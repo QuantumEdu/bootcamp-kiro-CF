@@ -69,7 +69,7 @@ func (h *ProductHandler) List(w http.ResponseWriter, r *http.Request) {
 		"Products":  products,
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	if err := RenderPage(w, h.tmpl, "products/list.html", data); err != nil {
 		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
 	}
 }

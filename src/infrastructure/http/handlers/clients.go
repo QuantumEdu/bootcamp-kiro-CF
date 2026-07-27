@@ -71,7 +71,7 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 		})
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		if tmplErr := h.tmpl.ExecuteTemplate(w, "layout.html", data); tmplErr != nil {
+		if tmplErr := RenderPage(w, h.tmpl, "clients/form.html", data); tmplErr != nil {
 			http.Error(w, "Error de template: "+tmplErr.Error(), http.StatusInternalServerError)
 		}
 		return

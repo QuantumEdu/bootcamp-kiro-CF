@@ -38,7 +38,7 @@ func (h *SaleHandler) NewSalePage(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.tmpl.ExecuteTemplate(w, "layout.html", data); err != nil {
+	if err := RenderPage(w, h.tmpl, "sales/index.html", data); err != nil {
 		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
 	}
 }

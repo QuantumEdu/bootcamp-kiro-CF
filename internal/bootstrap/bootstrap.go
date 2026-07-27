@@ -316,6 +316,8 @@ func loadTemplates(dir string) (*template.Template, error) {
 			return fmt.Errorf("reading %s: %w", path, err)
 		}
 		relPath, _ := filepath.Rel(dir, path)
+		// Normalize to forward slashes for cross-platform template lookup
+		relPath = filepath.ToSlash(relPath)
 		_, err = tmpl.New(relPath).Parse(string(content))
 		if err != nil {
 			return fmt.Errorf("parsing %s: %w", relPath, err)

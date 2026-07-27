@@ -26,27 +26,21 @@ func WithUserContext(r *http.Request, data map[string]interface{}) map[string]in
 }
 
 // RenderPage renders a full page with layout.html wrapping the specified content template.
-// Instead of cloning (which fails after first execution), we execute the content template
-// directly by looking it up and rendering it within the layout context.
+// Content templates are standalone HTML fragments (no {{define}} blocks).
+// We render them into a buffer and pass as safe HTML to layout.html via .Content field.
 func RenderPage(w http.ResponseWriter, tmpl *template.Template, contentName string, data map[string]interface{}) error {
-	// Execute the layout template. The {{template "content" .}} call inside layout.html
-	// will look for a "content" definition. We need to ensure the right one is active.
-	//
-	// Strategy: Execute the specific content template first into a buffer,
-	// then pass it as HTML data to the layout.
 	ct := tmpl.Lookup(contentName)
 	if ct == nil {
-		// Fallback: try the "content" defined block directly
 		return tmpl.ExecuteTemplate(w, "layout.html", data)
 	}
 
-	// Render the content template to get its HTML
+	// Render the content template to a buffer
 	var buf strings.Builder
 	if err := ct.Execute(&buf, data); err != nil {
 		return err
 	}
 
-	// Add rendered content as safe HTML to the data
+	// Pass rendered content as safe HTML to layout
 	data["Content"] = template.HTML(buf.String())
 	return tmpl.ExecuteTemplate(w, "layout.html", data)
 }

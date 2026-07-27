@@ -670,3 +670,18 @@ Este documento analiza cada prompt enviado durante el desarrollo del proyecto, c
 **Flujo diferente:** Buen uso del agente como generador de props de presentación. El contexto narrativo ("Lupita dueña de taquería") hizo que los datos fueran ultra-realistas.
 
 ---
+
+## Prompt 33: "Realiza los siguientes fix: 1. solo pude entrar con a..."
+
+**Lo que pedí:** Reporté 3 bugs en AWS: (1) cajero no entra, (2) todas las páginas muestran lo mismo, (3) chat AI no funciona. Además pedí README profesional.
+**Lo que pasó:** Se diagnosticaron y corrigieron 4 issues: (1) PIN cajero era 3 dígitos (min 4), cambiado a 1235. (2) `pages.go` tenía `_ = contentTmpl` — la variable nunca se usaba. Fix: `RenderPage` pre-renderiza el content template a buffer y lo pasa como `template.HTML`. (3) Static files 404 — Dockerfile ahora incluye `static/`. (4) OpenRouter key configurada en Secrets Manager. También se encontró y resolvió un error de `html/template: cannot Clone` (Go no permite Clone después de Execute). README profesional creado con link a demo, arquitectura, stack, métricas.
+**Versión profesional:**
+> "3 bugs en AWS: (1) Cajero PIN 123 no entra — el validador requiere 4+ dígitos. (2) Todas las rutas muestran el mismo contenido — el template 'content' no se está seleccionando por ruta. (3) Chat AI no envía — faltan API keys en Lambda. Diagnostica via CloudWatch logs, corrige, despliega, y verifica. Además, crea un README.md profesional con link a la demo, arquitectura, instrucciones de uso, y métricas."
+
+**Lo que me faltó pedir:**
+- Incluir el error exacto del browser (el "cannot Clone" fue un segundo bug que apareció después del primer fix)
+- Pedir que se pruebe localmente antes de desplegar a AWS (habría detectado el Clone issue sin esperar el pipeline)
+
+**Flujo diferente:** Correr la app localmente primero (`go run cmd/server/main.go`) y verificar todos los flujos ANTES de desplegar es más rápido que iterar via CI/CD (4 min por ciclo).
+
+---
