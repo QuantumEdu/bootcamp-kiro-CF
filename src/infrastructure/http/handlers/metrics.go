@@ -8,19 +8,29 @@ import (
 
 // MetricsHandler handles metric fragment rendering for HTMX polling.
 type MetricsHandler struct {
-	db *sql.DB
+	db         *sql.DB
+	isPostgres bool
 }
 
 // NewMetricsHandler creates a new metrics handler.
 func NewMetricsHandler(db *sql.DB) *MetricsHandler {
-	return &MetricsHandler{db: db}
+	return &MetricsHandler{db: db, isPostgres: false}
+}
+
+// NewMetricsHandlerPG creates a new metrics handler for PostgreSQL mode.
+func NewMetricsHandlerPG(db *sql.DB) *MetricsHandler {
+	return &MetricsHandler{db: db, isPostgres: true}
 }
 
 // VentasHoy returns today's sales summary.
 func (h *MetricsHandler) VentasHoy(w http.ResponseWriter, r *http.Request) {
 	var count int
 	var total float64
-	h.db.QueryRow(`SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE DATE(created_at) = DATE('now', 'localtime')`).Scan(&count, &total)
+	q := `SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE DATE(created_at) = DATE('now', 'localtime')`
+	if h.isPostgres {
+		q = `SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE created_at >= CURRENT_DATE`
+	}
+	h.db.QueryRow(q).Scan(&count, &total)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">Ventas hoy</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d transacciones</p>`, fmtMoney(total), count)
 }
@@ -29,7 +39,11 @@ func (h *MetricsHandler) VentasHoy(w http.ResponseWriter, r *http.Request) {
 func (h *MetricsHandler) VentasSemana(w http.ResponseWriter, r *http.Request) {
 	var count int
 	var total float64
-	h.db.QueryRow(`SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE created_at >= datetime('now', '-7 days', 'localtime')`).Scan(&count, &total)
+	q := `SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE created_at >= datetime('now', '-7 days', 'localtime')`
+	if h.isPostgres {
+		q = `SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE created_at >= NOW() - INTERVAL '7 days'`
+	}
+	h.db.QueryRow(q).Scan(&count, &total)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">Ventas semana</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d transacciones (7 dias)</p>`, fmtMoney(total), count)
 }
@@ -38,19 +52,32 @@ func (h *MetricsHandler) VentasSemana(w http.ResponseWriter, r *http.Request) {
 func (h *MetricsHandler) VentasMes(w http.ResponseWriter, r *http.Request) {
 	var count int
 	var total float64
-	h.db.QueryRow(`SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime')`).Scan(&count, &total)
+	q := `SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime')`
+	if h.isPostgres {
+		q = `SELECT COUNT(*), COALESCE(SUM(total), 0) FROM ventas WHERE created_at >= date_trunc('month', CURRENT_DATE)`
+	}
+	h.db.QueryRow(q).Scan(&count, &total)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">Ventas mes</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d transacciones</p>`, fmtMoney(total), count)
 }
 
 // TopProductos returns top 5 selling products.
 func (h *MetricsHandler) TopProductos(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(`
+	q := `
 		SELECT p.nombre, SUM(vi.cantidad) as unidades
 		FROM venta_items vi JOIN productos p ON p.id = vi.producto_id
 		JOIN ventas v ON v.id = vi.venta_id
 		WHERE v.created_at >= datetime('now', '-30 days', 'localtime')
-		GROUP BY vi.producto_id ORDER BY unidades DESC LIMIT 5`)
+		GROUP BY vi.producto_id ORDER BY unidades DESC LIMIT 5`
+	if h.isPostgres {
+		q = `
+		SELECT p.nombre, SUM(vi.cantidad) as unidades
+		FROM venta_items vi JOIN productos p ON p.id = vi.producto_id
+		JOIN ventas v ON v.id = vi.venta_id
+		WHERE v.created_at >= NOW() - INTERVAL '30 days'
+		GROUP BY p.nombre ORDER BY unidades DESC LIMIT 5`
+	}
+	rows, err := h.db.Query(q)
 	if err != nil {
 		renderErr(w, "Error cargando top productos")
 		return
@@ -78,7 +105,11 @@ func (h *MetricsHandler) TopProductos(w http.ResponseWriter, r *http.Request) {
 
 // StockBajo returns low stock products.
 func (h *MetricsHandler) StockBajo(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(`SELECT nombre, stock_actual, stock_minimo FROM productos WHERE stock_actual <= stock_minimo AND activo = 1 ORDER BY stock_actual ASC LIMIT 10`)
+	q := `SELECT nombre, stock_actual, stock_minimo FROM productos WHERE stock_actual <= stock_minimo AND activo = 1 ORDER BY stock_actual ASC LIMIT 10`
+	if h.isPostgres {
+		q = `SELECT nombre, stock_actual, stock_minimo FROM productos WHERE stock_actual <= stock_minimo AND activo = true ORDER BY stock_actual ASC LIMIT 10`
+	}
+	rows, err := h.db.Query(q)
 	if err != nil {
 		renderErr(w, "Error cargando stock bajo")
 		return
@@ -109,11 +140,19 @@ func (h *MetricsHandler) StockBajo(w http.ResponseWriter, r *http.Request) {
 
 // ClientesFrecuentes returns top customers.
 func (h *MetricsHandler) ClientesFrecuentes(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(`
+	q := `
 		SELECT c.nombre, COUNT(v.id) as compras, COALESCE(SUM(v.total), 0) as total_gastado
 		FROM clientes c JOIN ventas v ON v.cliente_id = c.id
 		WHERE v.created_at >= datetime('now', '-30 days', 'localtime')
-		GROUP BY c.id ORDER BY compras DESC LIMIT 5`)
+		GROUP BY c.id ORDER BY compras DESC LIMIT 5`
+	if h.isPostgres {
+		q = `
+		SELECT c.nombre, COUNT(v.id) as compras, COALESCE(SUM(v.total), 0) as total_gastado
+		FROM clientes c JOIN ventas v ON v.cliente_id = c.id
+		WHERE v.created_at >= NOW() - INTERVAL '30 days'
+		GROUP BY c.nombre ORDER BY compras DESC LIMIT 5`
+	}
+	rows, err := h.db.Query(q)
 	if err != nil {
 		renderErr(w, "Error cargando clientes")
 		return
@@ -181,7 +220,11 @@ func (h *MetricsHandler) MargenCategoria(w http.ResponseWriter, r *http.Request)
 
 // ProductosHTMX returns products table rows.
 func (h *MetricsHandler) ProductosHTMX(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(`SELECT p.nombre, COALESCE(p.sku,''), p.precio_venta, p.stock_actual FROM productos p WHERE p.activo = 1 ORDER BY p.nombre LIMIT 50`)
+	q := `SELECT p.nombre, COALESCE(p.sku,''), p.precio_venta, p.stock_actual FROM productos p WHERE p.activo = 1 ORDER BY p.nombre LIMIT 50`
+	if h.isPostgres {
+		q = `SELECT p.nombre, COALESCE(p.sku,''), p.precio_venta, p.stock_actual FROM productos p WHERE p.activo = true ORDER BY p.nombre LIMIT 50`
+	}
+	rows, err := h.db.Query(q)
 	if err != nil {
 		renderErr(w, "Error")
 		return
@@ -249,7 +292,11 @@ func (h *MetricsHandler) ProductosBuscar(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	s := "%" + q + "%"
-	rows, err := h.db.Query(`SELECT id, nombre, precio_venta, stock_actual FROM productos WHERE activo = 1 AND (nombre LIKE ? OR sku LIKE ?) ORDER BY nombre LIMIT 10`, s, s)
+	query := `SELECT id, nombre, precio_venta, stock_actual FROM productos WHERE activo = 1 AND (nombre LIKE ? OR sku LIKE ?) ORDER BY nombre LIMIT 10`
+	if h.isPostgres {
+		query = `SELECT id, nombre, precio_venta, stock_actual FROM productos WHERE activo = true AND (nombre ILIKE $1 OR sku ILIKE $2) ORDER BY nombre LIMIT 10`
+	}
+	rows, err := h.db.Query(query, s, s)
 	if err != nil {
 		return
 	}

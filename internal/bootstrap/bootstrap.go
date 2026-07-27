@@ -127,7 +127,7 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 		// Handlers
 		pageHandler = handlers.NewPageHandler(tmpl)
 		chatHandler = handlers.NewChatHandler(nlsqlService, tmpl)
-		metricsHandler = handlers.NewMetricsHandler(writeDB)
+		metricsHandler = handlers.NewMetricsHandlerPG(writeDB)
 		authHandler = handlers.NewAuthHandler(authUC, tmpl, sessionManager)
 		productHandler = handlers.NewProductHandler(createProductUC, updateProductUC, listProductsUC, deactivateProductUC, productRepo, tmpl)
 		saleHandler = handlers.NewSaleHandler(registerSaleUC, tmpl, sessionManager)
