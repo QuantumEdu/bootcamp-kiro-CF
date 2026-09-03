@@ -220,6 +220,45 @@ Este proyecto demuestra el poder del **desarrollo asistido por agentes**:
 
 ---
 
+## ☁️ Infraestructura AWS
+
+### Recursos aprovisionados
+
+Todos los recursos fueron aprovisionados mediante **AWS SAM** (`template.yaml`) con el comando `sam deploy --guided`, excepto ECR que se provisiona por separado como parte del pipeline CI/CD.
+
+| Recurso | Servicio AWS | Rol en el sistema | Cómo se aprovisionó |
+|---------|-------------|-------------------|---------------------|
+| **Lambda Function** `pos-ai-first-PosFunction` | AWS Lambda | Compute principal. Ejecuta el binario Go (ARM64, 512MB, 30s timeout). Maneja todas las requests HTTP del POS. | SAM `template.yaml` → `AWS::Lambda::Function` |
+| **HTTP API** | API Gateway v2 | Punto de entrada público. Rutea requests al Lambda via proxy integration. | SAM `template.yaml` → `AWS::ApiGatewayV2::Api` |
+| **API Stage** `$default` | API Gateway v2 | Stage con auto-deploy habilitado. Expone la URL pública del servicio. | SAM `template.yaml` → `AWS::ApiGatewayV2::Stage` |
+| **S3 Bucket** `pos-static-production` | Amazon S3 | Almacenamiento de assets estáticos (JS Alpine.js components). Servido via CloudFront. | SAM `template.yaml` → `AWS::S3::Bucket` |
+| **Bucket Policy** | Amazon S3 | Permite a CloudFront leer los objetos del bucket via OAC. Bloquea acceso público directo. | SAM `template.yaml` → `AWS::S3::BucketPolicy` |
+| **CloudFront Distribution** | Amazon CloudFront | CDN. Sirve assets estáticos desde S3 y rutea `/` al API Gateway. Reduce latencia global. | SAM `template.yaml` → `AWS::CloudFront::Distribution` |
+| **Origin Access Control (OAC)** | Amazon CloudFront | Permite a CloudFront autenticarse contra S3 sin exponer el bucket públicamente. | SAM `template.yaml` → `AWS::CloudFront::OriginAccessControl` |
+| **Lambda Execution Role** | AWS IAM | Role con permisos mínimos: CloudWatch Logs, VPC networking, Secrets Manager read. | SAM `template.yaml` → `AWS::IAM::Role` |
+| **RDS PostgreSQL** `pos-ai-first-db` | Amazon RDS | Base de datos de producción. PostgreSQL 16, instancia `db.t4g.micro`, almacenamiento 20GB gp3. | Manual via consola AWS (fuera de SAM) |
+| **Secrets Manager** (3 secrets) | AWS Secrets Manager | Almacena credenciales cifradas: `pos/db-connection`, `pos/ai-config`, `pos/session-secret`. El Lambda los lee al iniciar con cache in-memory. | Manual via consola AWS (fuera de SAM) |
+| **ECR Repository** `pos-ai-first` | Amazon ECR | Registry de imágenes Docker. Almacena la imagen del Lambda (Go ARM64, ~15MB). | GitHub Actions CI/CD pipeline |
+| **CloudWatch Log Group** `/aws/lambda/pos-ai-first-PosFunction` | Amazon CloudWatch | Logs de ejecución del Lambda. Retención configurable. Creado automáticamente por Lambda al ejecutarse. | Auto-creado por Lambda |
+
+### Recursos desaprovisionados
+
+La limpieza se realizó en el siguiente orden para evitar dependencias rotas:
+
+| Orden | Recurso | Método de eliminación | Notas |
+|-------|---------|----------------------|-------|
+| 1 | S3 Bucket (objetos) | Consola S3 → Empty bucket | CloudFormation no puede borrar buckets con contenido |
+| 2 | CloudFormation Stack `pos-ai-first` | Consola CloudFormation → Delete stack | Eliminó en cascada: Lambda, API Gateway, CloudFront, OAC, S3 bucket, IAM Role |
+| 3 | ECR Repository `pos-ai-first` | Consola ECR → Delete | Eliminó repositorio e imágenes Docker |
+| 4 | Secrets Manager (3 secrets) | Consola Secrets Manager → Schedule deletion (7 días) | Mínimo de recuperación de 7 días impuesto por AWS |
+| 5 | RDS PostgreSQL `pos-ai-first-db` | Consola RDS → Delete (sin snapshot final) | Tardó ~3 minutos en completarse |
+| 6 | RDS Snapshots (9 automáticos) | Consola RDS → Snapshots → Delete | Quedaron huérfanos al borrar la DB |
+| 7 | CloudWatch Log Group | Consola CloudWatch → Log Management → Delete | Huérfano post-eliminación del stack |
+
+> **Resultado:** Cuenta AWS en estado limpio. Sin recursos activos ni costos recurrentes.
+
+---
+
 ## 📄 Licencia
 
 Proyecto desarrollado para el Bootcamp Kiro × Código Facilito × AWS — Hackathon 2026.
