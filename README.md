@@ -20,16 +20,11 @@ El sistema permite a dueños de pequeños negocios (taquerías, tiendas de abarr
 
 ## 🌐 Demo en vivo
 
-| Recurso | URL |
-|---------|-----|
-| **App (AWS Lambda)** | https://zz637vr6cd.execute-api.us-east-1.amazonaws.com |
-| **Health Check** | https://zz637vr6cd.execute-api.us-east-1.amazonaws.com/health |
+> ⛔ **La infraestructura AWS fue desaprovisionada el 2 de septiembre de 2026 y la cuenta cerrada.** Las URLs de producción ya no están disponibles.
+>
+> Para correr el proyecto localmente, ver la sección **Cómo ejecutar → Local**.
 
-**Credenciales de acceso:**
-- Admin: PIN `1234`
-- Cajero: PIN `1235`
-
-> ⚠️ La app puede estar desactivada fuera del horario de demo. Para reactivar: ver sección de Deploy.
+~~https://zz637vr6cd.execute-api.us-east-1.amazonaws.com~~
 
 ---
 
@@ -172,19 +167,8 @@ go run cmd/server/main.go
 
 ### AWS (producción)
 
-```bash
-# Prerequisitos: AWS CLI configurado, SAM CLI instalado
-sam deploy --guided
-
-# O via CI/CD: push a main dispara deploy automático
-git push origin main
-```
-
-### Reactivar la app (si está desactivada)
-
-```bash
-aws apigatewayv2 create-stage --api-id zz637vr6cd --stage-name '$default' --auto-deploy --region us-east-1
-```
+> ⛔ **Infraestructura desaprovisionada.** La cuenta AWS fue cerrada el 2 de septiembre de 2026.
+> El código de deploy está disponible en `template.yaml` y `.github/workflows/deploy.yml` como referencia.
 
 ---
 
