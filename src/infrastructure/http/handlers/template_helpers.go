@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 )
 
 // WithUserContext enriches template data with user information from the request context.
@@ -24,6 +24,10 @@ func WithUserContext(r *http.Request, data map[string]interface{}) map[string]in
 
 	data["UserName"] = userName
 	data["UserRole"] = userRole
+	data["UserRoleLabel"] = userRole
+	if userRole == "admin" || userRole == "cajero" {
+		data["UserRoleLabel"] = tr.Translate("role." + userRole)
+	}
 	data["UserInitial"] = initial
 	data["Lang"] = tr.Lang()
 	data["T"] = tr.Func()

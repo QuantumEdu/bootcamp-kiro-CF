@@ -24,35 +24,35 @@ func NewClientHandler(create *use_cases.CreateClient, list *use_cases.ListClient
 func (h *ClientHandler) List(w http.ResponseWriter, r *http.Request) {
 	clients, err := h.listUC.Execute(r.Context())
 	if err != nil {
-		http.Error(w, "Error al cargar clientes", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.clients.load"), http.StatusInternalServerError)
 		return
 	}
 
 	data := WithUserContext(r, map[string]interface{}{
-		"PageTitle": "Clientes",
+		"PageTitle": tr(r, "page.clients"),
 		"Clients":   clients,
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := RenderPage(w, h.tmpl, "clients/list.html", data); err != nil {
-		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.template")+": "+err.Error(), http.StatusInternalServerError)
 	}
 }
 
 // CreateForm handles GET /clientes/new — renders the client creation form.
 func (h *ClientHandler) CreateForm(w http.ResponseWriter, r *http.Request) {
 	data := WithUserContext(r, map[string]interface{}{
-		"PageTitle": "Nuevo Cliente",
+		"PageTitle": tr(r, "page.clients.new"),
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := RenderPage(w, h.tmpl, "clients/form.html", data); err != nil {
-		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.template")+": "+err.Error(), http.StatusInternalServerError)
 	}
 }
 
 // Create handles POST /clientes — parses form, validates, and creates a new client.
 func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error al procesar el formulario", http.StatusBadRequest)
+		http.Error(w, tr(r, "error.form"), http.StatusBadRequest)
 		return
 	}
 
@@ -65,14 +65,14 @@ func (h *ClientHandler) Create(w http.ResponseWriter, r *http.Request) {
 	_, err := h.createUC.Execute(r.Context(), input)
 	if err != nil {
 		data := WithUserContext(r, map[string]interface{}{
-			"PageTitle": "Nuevo Cliente",
-			"Error":     "El nombre del cliente es obligatorio",
+			"PageTitle": tr(r, "page.clients.new"),
+			"Error":     localizedError(r, err),
 			"Input":     input,
 		})
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		if tmplErr := RenderPage(w, h.tmpl, "clients/form.html", data); tmplErr != nil {
-			http.Error(w, "Error de template: "+tmplErr.Error(), http.StatusInternalServerError)
+			http.Error(w, tr(r, "error.template")+": "+tmplErr.Error(), http.StatusInternalServerError)
 		}
 		return
 	}

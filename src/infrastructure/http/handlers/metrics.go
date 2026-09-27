@@ -189,12 +189,12 @@ func (h *MetricsHandler) ClientesFrecuentes(w http.ResponseWriter, r *http.Reque
 
 // MargenCategoria returns profit margins by category.
 func (h *MetricsHandler) MargenCategoria(w http.ResponseWriter, r *http.Request) {
-	q := `SELECT COALESCE(c.nombre, 'Sin categoria') as cat, COUNT(p.id) as prods,
+	q := `SELECT c.nombre as cat, COUNT(p.id) as prods,
 		       COALESCE(AVG(CASE WHEN p.precio_venta > 0 THEN ((p.precio_venta - p.precio_compra) / p.precio_venta) * 100 ELSE 0 END), 0) as pct
 		FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id
 		WHERE p.activo = 1 GROUP BY p.categoria_id ORDER BY pct DESC`
 	if h.isPostgres {
-		q = `SELECT COALESCE(c.nombre, 'Sin categoria') as cat, COUNT(p.id) as prods,
+		q = `SELECT c.nombre as cat, COUNT(p.id) as prods,
 		       COALESCE(AVG(CASE WHEN p.precio_venta > 0 THEN ((p.precio_venta - p.precio_compra) / p.precio_venta) * 100 ELSE 0 END), 0) as pct
 		FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id
 		WHERE p.activo = true GROUP BY c.nombre ORDER BY pct DESC`
@@ -210,10 +210,14 @@ func (h *MetricsHandler) MargenCategoria(w http.ResponseWriter, r *http.Request)
 	found := false
 	for rows.Next() {
 		found = true
-		var cat string
+		var category sql.NullString
+		cat := tr(r, "metrics.uncategorized")
 		var prods int
 		var pct float64
-		rows.Scan(&cat, &prods, &pct)
+		rows.Scan(&category, &prods, &pct)
+		if category.Valid {
+			cat = category.String
+		}
 		barColor := "bg-green-500"
 		if pct < 20 {
 			barColor = "bg-red-500"
@@ -242,7 +246,7 @@ func (h *MetricsHandler) ProductosHTMX(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := h.db.Query(q)
 	if err != nil {
-		renderErr(w, "Error")
+		renderErr(w, tr(r, "metrics.error_loading"))
 		return
 	}
 	defer rows.Close()
@@ -267,7 +271,7 @@ func (h *MetricsHandler) ProductosHTMX(w http.ResponseWriter, r *http.Request) {
 func (h *MetricsHandler) VentasRecientes(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.Query(`SELECT v.id, v.total, v.metodo_pago, v.created_at FROM ventas v ORDER BY v.created_at DESC LIMIT 10`)
 	if err != nil {
-		renderErr(w, "Error")
+		renderErr(w, tr(r, "metrics.error_loading"))
 		return
 	}
 	defer rows.Close()
@@ -290,7 +294,7 @@ func (h *MetricsHandler) VentasRecientes(w http.ResponseWriter, r *http.Request)
 		if len(fecha) > 16 {
 			display = fecha[:16]
 		}
-		html += fmt.Sprintf(`<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"><div><span class="font-medium text-gray-800">#%d</span><span class="text-gray-500 ml-2">%s</span></div><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded text-xs %s">%s</span><span class="font-bold text-gray-900">$%.2f</span></div></div>`, id, display, badge, metodo, total)
+		html += fmt.Sprintf(`<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"><div><span class="font-medium text-gray-800">#%d</span><span class="text-gray-500 ml-2">%s</span></div><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded text-xs %s">%s</span><span class="font-bold text-gray-900">$%.2f</span></div></div>`, id, display, badge, paymentLabel(r, metodo), total)
 	}
 	if !found {
 		html += fmt.Sprintf(`<p class="text-sm text-gray-400 text-center py-4">%s</p>`, tr(r, "metrics.no_sales"))
@@ -355,4 +359,20 @@ func escJS(s string) string {
 		}
 	}
 	return out
+}
+
+// paymentLabel translates display labels only; persisted payment values stay unchanged.
+func paymentLabel(r *http.Request, value string) string {
+	switch value {
+	case "efectivo", "cash":
+		return tr(r, "sales.payment.cash")
+	case "tarjeta", "card":
+		return tr(r, "sales.payment.card")
+	case "transferencia", "transfer":
+		return tr(r, "sales.payment.transfer")
+	case "mixto":
+		return tr(r, "sales.payment.mixed")
+	default:
+		return value
+	}
 }

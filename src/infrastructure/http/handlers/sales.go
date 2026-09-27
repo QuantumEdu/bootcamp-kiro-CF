@@ -34,12 +34,12 @@ func NewSaleHandler(
 // NewSalePage handles GET /ventas/new — renders the POS-style sale capture page.
 func (h *SaleHandler) NewSalePage(w http.ResponseWriter, r *http.Request) {
 	data := WithUserContext(r, map[string]interface{}{
-		"PageTitle": "Nueva Venta",
+		"PageTitle": tr(r, "page.sales.new"),
 	})
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := RenderPage(w, h.tmpl, "sales/index.html", data); err != nil {
-		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.template")+": "+err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -60,12 +60,12 @@ func (h *SaleHandler) CompleteSale(w http.ResponseWriter, r *http.Request) {
 	// Parse JSON body.
 	var req checkoutRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.renderSaleError(w, "Error al procesar los datos del carrito")
+		h.renderSaleError(w, r, tr(r, "sales.error.data"))
 		return
 	}
 
 	if len(req.Items) == 0 {
-		h.renderSaleError(w, "El carrito está vacío")
+		h.renderSaleError(w, r, tr(r, "sales.error.empty"))
 		return
 	}
 
@@ -101,7 +101,7 @@ func (h *SaleHandler) CompleteSale(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		json.NewEncoder(w).Encode(map[string]string{"error": localizedError(r, err)})
 		return
 	}
 
@@ -117,21 +117,21 @@ func (h *SaleHandler) CompleteSale(w http.ResponseWriter, r *http.Request) {
 }
 
 // renderSaleError returns an HTMX error fragment.
-func (h *SaleHandler) renderSaleError(w http.ResponseWriter, msg string) {
+func (h *SaleHandler) renderSaleError(w http.ResponseWriter, r *http.Request, msg string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusUnprocessableEntity)
 	fmt.Fprintf(w, `<div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
-		<p class="font-medium">Error en la venta</p>
+		<p class="font-medium">%s</p>
 		<p>%s</p>
-	</div>`, template.HTMLEscapeString(msg))
+	</div>`, tr(r, "sales.error.title"), template.HTMLEscapeString(msg))
 }
 
 // renderSaleSuccess returns an HTMX success fragment.
-func (h *SaleHandler) renderSaleSuccess(w http.ResponseWriter, sale *entities.Sale) {
+func (h *SaleHandler) renderSaleSuccess(w http.ResponseWriter, r *http.Request, sale *entities.Sale) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("HX-Trigger", "ventaCreada")
 	fmt.Fprintf(w, `<div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700" role="alert">
-		<p class="font-medium">✅ Venta registrada</p>
-		<p>Venta #%d — Total: $%.2f — %d items</p>
-	</div>`, sale.ID, sale.Total, len(sale.Items))
+		<p class="font-medium">✅ %s</p>
+		<p>%s</p>
+	</div>`, tr(r, "sales.success"), fmt.Sprintf(tr(r, "sales.receipt"), sale.ID, sale.Total, len(sale.Items)))
 }

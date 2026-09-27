@@ -22,3 +22,16 @@ func TestRequestLanguage(t *testing.T) {
 		})
 	}
 }
+
+func TestTranslationParity(t *testing.T) {
+	for key, value := range translationsEN {
+		if value == "" || translationsES[key] == "" {
+			t.Errorf("missing Spanish translation for %s", key)
+		}
+	}
+	for key, value := range translationsES {
+		if value == "" || translationsEN[key] == "" {
+			t.Errorf("missing English translation for %s", key)
+		}
+	}
+}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 )
 
 // ChatResult represents the result of a chat query.
@@ -53,18 +54,25 @@ func (s *Service) SetLogger(logger *QueryLogger) {
 
 // ProcessQuery processes a natural language query end-to-end.
 func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResult {
+	return s.ProcessQueryLanguage(ctx, userQuery, "es")
+}
+
+// ProcessQueryLanguage uses the selected UI language for AI explanations and errors.
+// The existing ProcessQuery API preserves Spanish for its legacy callers.
+func (s *Service) ProcessQueryLanguage(ctx context.Context, userQuery, lang string) *ChatResult {
+	tr := i18n.New(lang)
 	start := time.Now()
 	result := &ChatResult{Query: userQuery}
 
 	if err := ValidateUserInput(userQuery); err != nil {
-		result.Error = err.Error()
+		result.Error = localizedDiagnostic(tr, err.Error())
 		s.logQuery(ctx, userQuery, "", false, err.Error(), time.Since(start))
 		return result
 	}
 
-	nlResp, err := s.openRouter.GenerateSQL(ctx, userQuery, s.buildSystemPrompt())
+	nlResp, err := s.openRouter.GenerateSQL(ctx, userQuery, s.buildSystemPromptLanguage(lang))
 	if err != nil {
-		result.Error = fmt.Sprintf("Error al procesar: %v", err)
+		result.Error = fmt.Sprintf("%s: %s", tr.Translate("chat.processing_error"), localizedDiagnostic(tr, err.Error()))
 		s.logQuery(ctx, userQuery, "", false, result.Error, time.Since(start))
 		return result
 	}
@@ -75,7 +83,7 @@ func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResul
 		return result
 	}
 	if nlResp.SQL == nil {
-		result.Error = "No se pudo generar SQL"
+		result.Error = tr.Translate("chat.no_sql")
 		result.Explanation = nlResp.Explanation
 		s.logQuery(ctx, userQuery, "", false, result.Error, time.Since(start))
 		return result
@@ -86,7 +94,7 @@ func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResul
 	result.Explanation = nlResp.Explanation
 
 	if err := ValidateSQL(generatedSQL); err != nil {
-		result.Error = fmt.Sprintf("Consulta insegura: %v", err)
+		result.Error = fmt.Sprintf("%s: %s", tr.Translate("chat.unsafe"), localizedDiagnostic(tr, err.Error()))
 		s.logQuery(ctx, userQuery, generatedSQL, false, result.Error, time.Since(start))
 		return result
 	}
@@ -100,7 +108,7 @@ func (s *Service) ProcessQuery(ctx context.Context, userQuery string) *ChatResul
 
 	columns, rows, err := s.executeQuery(queryCtx, generatedSQL)
 	if err != nil {
-		result.Error = fmt.Sprintf("Error ejecutando: %v", err)
+		result.Error = fmt.Sprintf("%s: %v", tr.Translate("chat.execution_error"), err)
 		s.logQuery(ctx, userQuery, generatedSQL, false, result.Error, time.Since(start))
 		return result
 	}
@@ -219,4 +227,41 @@ User: "mostrame las ventas de hoy"
 {"sql": "SELECT v.id, v.total, v.metodo_pago, v.created_at FROM ventas v WHERE %s ORDER BY v.created_at DESC", "explanation": "Ventas del dia actual", "error": null}
 
 Responde SIEMPRE JSON: {"sql": "SELECT ...", "explanation": "...", "error": null}`, dbType, dbType, s.schema, dateLast7, dateToday)
+}
+
+func (s *Service) buildSystemPromptLanguage(lang string) string {
+	language := "English"
+	if lang == i18n.LangES {
+		language = "Spanish"
+	}
+	return s.buildSystemPrompt() + "\nWrite explanation and error fields in " + language + ". Keep SQL identifiers and stored values unchanged. The selected language takes precedence over the example explanation language."
+}
+
+// localizedDiagnostic translates validator/provider messages, preserving unknown diagnostics.
+func localizedDiagnostic(tr *i18n.Translator, message string) string {
+	for _, entry := range []struct{ text, key string }{
+		{"consulta vacia", "chat.input.empty"},
+		{"consulta demasiado larga (max 500 caracteres)", "chat.input.long"},
+		{"consulta no permitida", "chat.input.denied"},
+		{"consulta SQL vacia", "chat.sql.empty"},
+		{"solo se permiten consultas SELECT", "chat.sql.select"},
+		{"no se permiten comentarios SQL", "chat.sql.comments"},
+		{"no se permiten multiples sentencias", "chat.sql.multiple"},
+		{adapters.ErrAIUnavailable.Error(), "chat.ai.unavailable"},
+		{adapters.ErrAIRateLimit.Error(), "chat.ai.rate_limit"},
+		{adapters.ErrAIMalformedResponse.Error(), "chat.ai.malformed"},
+	} {
+		if message == entry.text {
+			return tr.Translate(entry.key)
+		}
+	}
+	for _, entry := range []struct{ prefix, key string }{
+		{"palabra clave no permitida: ", "chat.sql.keyword"},
+		{"tabla no permitida: ", "chat.sql.table"},
+	} {
+		if strings.HasPrefix(message, entry.prefix) {
+			return tr.Translate(entry.key) + ": " + strings.TrimPrefix(message, entry.prefix)
+		}
+	}
+	return message
 }

@@ -11,16 +11,16 @@
             hx-swap="innerHTML"
             class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
         >
-            Editar
+            {{call .T "products.action.edit"}}
         </button>
         <button
             hx-delete="/productos/{{.ID}}"
             hx-target="#product-{{.ID}}"
             hx-swap="outerHTML"
-            hx-confirm="¿Desactivar este producto?"
+            hx-confirm="{{call .T "products.confirm.deactivate"}}"
             class="text-red-500 hover:text-red-700 text-sm font-medium"
         >
-            Desactivar
+            {{call .T "products.action.deactivate"}}
         </button>
     </td>
 </tr>

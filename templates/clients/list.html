@@ -1,9 +1,9 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-gray-800">Clientes</h2>
+        <h2 class="text-xl font-bold text-gray-800">{{call .T "clients.title"}}</h2>
         <a href="/clientes/new" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Nuevo Cliente
+            {{call .T "clients.new"}}
         </a>
     </div>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -11,9 +11,9 @@
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Nombre</th>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Teléfono</th>
-                    <th class="px-4 py-3 text-left font-medium text-gray-600">Dirección</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">{{call .T "clients.col.name"}}</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">{{call .T "clients.col.phone"}}</th>
+                    <th class="px-4 py-3 text-left font-medium text-gray-600">{{call .T "clients.col.address"}}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -28,7 +28,7 @@
         </table>
         {{else}}
         <div class="px-4 py-8 text-center text-gray-400">
-            No hay clientes registrados
+            {{call .T "clients.empty"}}
         </div>
         {{end}}
     </div>

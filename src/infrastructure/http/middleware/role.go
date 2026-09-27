@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 	"net/http"
 
 	"github.com/alexedwards/scs/v2"
@@ -14,7 +15,7 @@ func RequireRole(sessions *scs.SessionManager, role string) func(http.Handler) h
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userRole := sessions.GetString(r.Context(), "user_role")
 			if userRole != role {
-				http.Error(w, "Acceso denegado: no tiene permisos para esta sección.", http.StatusForbidden)
+				http.Error(w, i18n.FromRequest(r).Translate("error.access"), http.StatusForbidden)
 				return
 			}
 

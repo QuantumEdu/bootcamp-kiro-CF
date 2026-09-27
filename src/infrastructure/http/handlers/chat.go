@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/nlsql"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 )
 
 // ChatHandler handles chat-related HTTP requests.
@@ -23,21 +24,21 @@ func NewChatHandler(service *nlsql.Service, tmpl *template.Template) *ChatHandle
 func (h *ChatHandler) HandleChat(w http.ResponseWriter, r *http.Request) {
 	query := strings.TrimSpace(r.FormValue("query"))
 	if query == "" {
-		http.Error(w, "Query required", http.StatusBadRequest)
+		http.Error(w, tr(r, "chat.query_required"), http.StatusBadRequest)
 		return
 	}
 
-	result := h.service.ProcessQuery(r.Context(), query)
+	result := h.service.ProcessQueryLanguage(r.Context(), query, i18n.FromRequest(r).Lang())
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	data := map[string]interface{}{
+	data := WithUserContext(r, map[string]interface{}{
 		"Query":       result.Query,
 		"Explanation": result.Explanation,
 		"Columns":     result.Columns,
 		"Results":     result.Results,
 		"Error":       result.Error,
-	}
+	})
 	if err := h.tmpl.ExecuteTemplate(w, "chat_message", data); err != nil {
-		http.Error(w, "Template error", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.template"), http.StatusInternalServerError)
 	}
 }

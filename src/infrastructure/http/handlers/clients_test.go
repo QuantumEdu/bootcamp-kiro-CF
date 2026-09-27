@@ -66,8 +66,8 @@ func TestClientHandler_List_ReturnsClients(t *testing.T) {
 	if !strings.Contains(body, "María López") {
 		t.Errorf("expected body to contain 'María López', got: %s", body)
 	}
-	if !strings.Contains(body, "Clientes") {
-		t.Errorf("expected body to contain PageTitle 'Clientes', got: %s", body)
+	if !strings.Contains(body, "Clients") {
+		t.Errorf("expected body to contain PageTitle 'Clients', got: %s", body)
 	}
 }
 

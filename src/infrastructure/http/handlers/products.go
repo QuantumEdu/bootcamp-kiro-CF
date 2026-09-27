@@ -53,51 +53,50 @@ func (h *ProductHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.listUC.Execute(r.Context(), filter)
 	if err != nil {
-		http.Error(w, "Error al cargar productos", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.products.load"), http.StatusInternalServerError)
 		return
 	}
 
 	// If HTMX request, return only table rows fragment.
 	if isHTMX(r) {
-		h.renderProductRows(w, products)
+		h.renderProductRows(w, r, products)
 		return
 	}
 
 	// Full page render.
 	data := WithUserContext(r, map[string]interface{}{
-		"PageTitle": "Productos",
+		"PageTitle": tr(r, "page.products"),
 		"Products":  products,
 	})
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := RenderPage(w, h.tmpl, "products/list.html", data); err != nil {
-		http.Error(w, "Error de template: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.template")+": "+err.Error(), http.StatusInternalServerError)
 	}
 }
 
 // CreateForm handles GET /productos/new — renders the create product form.
 func (h *ProductHandler) CreateForm(w http.ResponseWriter, r *http.Request) {
-	data := map[string]interface{}{
-		"PageTitle": "Nuevo Producto",
+	data := WithUserContext(r, map[string]interface{}{
+		"PageTitle": tr(r, "page.products.new"),
 		"Product":   &entities.Product{Unidad: entities.UnitUnidad, Activo: true},
 		"IsEdit":    false,
-	}
+	})
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if t := h.tmpl.Lookup("products/form.html"); t != nil {
 		if err := t.Execute(w, data); err != nil {
-			http.Error(w, "Error de template", http.StatusInternalServerError)
+			http.Error(w, tr(r, "error.template"), http.StatusInternalServerError)
 		}
 		return
 	}
 
-	// Fallback inline form if template not found.
-	h.renderFormFallback(w, data)
+	h.renderFormFallback(w, r, data)
 }
 
 // Create handles POST /productos — validates and creates a new product.
 func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		h.renderValidationError(w, r, "Error al procesar el formulario")
+		h.renderValidationError(w, r, tr(r, "error.form"))
 		return
 	}
 
@@ -109,12 +108,13 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.createUC.Execute(r.Context(), input)
 	if err != nil {
-		h.renderValidationError(w, r, formatUseCaseError(err))
+		h.renderValidationError(w, r, localizedError(r, err))
 		return
 	}
 
+	// Create handler
 	if isHTMX(r) {
-		h.renderProductRow(w, product)
+		h.renderProductRow(w, r, product)
 		return
 	}
 
@@ -125,43 +125,43 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) EditForm(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
+		http.Error(w, tr(r, "error.id"), http.StatusBadRequest)
 		return
 	}
 
 	product, err := h.repo.FindByID(r.Context(), id)
 	if err != nil {
-		http.Error(w, "Producto no encontrado", http.StatusNotFound)
+		http.Error(w, tr(r, "error.product.not_found"), http.StatusNotFound)
 		return
 	}
 
-	data := map[string]interface{}{
-		"PageTitle": "Editar Producto",
+	data := WithUserContext(r, map[string]interface{}{
+		"PageTitle": tr(r, "page.products.edit"),
 		"Product":   product,
 		"IsEdit":    true,
-	}
+	})
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if t := h.tmpl.Lookup("products/form.html"); t != nil {
 		if err := t.Execute(w, data); err != nil {
-			http.Error(w, "Error de template", http.StatusInternalServerError)
+			http.Error(w, tr(r, "error.template"), http.StatusInternalServerError)
 		}
 		return
 	}
 
-	h.renderFormFallback(w, data)
+	h.renderFormFallback(w, r, data)
 }
 
 // Edit handles POST /productos/{id} — validates and updates an existing product.
 func (h *ProductHandler) Edit(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		h.renderValidationError(w, r, "ID inválido")
+		h.renderValidationError(w, r, tr(r, "error.id"))
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		h.renderValidationError(w, r, "Error al procesar el formulario")
+		h.renderValidationError(w, r, tr(r, "error.form"))
 		return
 	}
 
@@ -185,12 +185,12 @@ func (h *ProductHandler) Edit(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.updateUC.Execute(r.Context(), updateInput)
 	if err != nil {
-		h.renderValidationError(w, r, formatUseCaseError(err))
+		h.renderValidationError(w, r, localizedError(r, err))
 		return
 	}
 
 	if isHTMX(r) {
-		h.renderProductRow(w, product)
+		h.renderProductRow(w, r, product)
 		return
 	}
 
@@ -201,12 +201,12 @@ func (h *ProductHandler) Edit(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
+		http.Error(w, tr(r, "error.id"), http.StatusBadRequest)
 		return
 	}
 
 	if err := h.deactivateUC.Execute(r.Context(), id); err != nil {
-		http.Error(w, "Error al desactivar producto", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.products.deactivate"), http.StatusInternalServerError)
 		return
 	}
 
@@ -232,27 +232,27 @@ func isHTMX(r *http.Request) bool {
 func parseProductForm(r *http.Request) (use_cases.CreateProductInput, string) {
 	nombre := strings.TrimSpace(r.FormValue("nombre"))
 	if nombre == "" {
-		return use_cases.CreateProductInput{}, "El nombre del producto es obligatorio"
+		return use_cases.CreateProductInput{}, tr(r, "error.product.name")
 	}
 
 	precioVenta, err := strconv.ParseFloat(r.FormValue("precio_venta"), 64)
 	if err != nil || precioVenta <= 0 {
-		return use_cases.CreateProductInput{}, "El precio de venta debe ser mayor a cero"
+		return use_cases.CreateProductInput{}, tr(r, "error.product.price")
 	}
 
 	precioCompra, _ := strconv.ParseFloat(r.FormValue("precio_compra"), 64)
 	if precioCompra < 0 {
-		return use_cases.CreateProductInput{}, "El precio de compra no puede ser negativo"
+		return use_cases.CreateProductInput{}, tr(r, "error.product.cost")
 	}
 
 	stockActual, _ := strconv.ParseFloat(r.FormValue("stock_actual"), 64)
 	if stockActual < 0 {
-		return use_cases.CreateProductInput{}, "El stock actual no puede ser negativo"
+		return use_cases.CreateProductInput{}, tr(r, "error.product.stock")
 	}
 
 	stockMinimo, _ := strconv.ParseFloat(r.FormValue("stock_minimo"), 64)
 	if stockMinimo < 0 {
-		return use_cases.CreateProductInput{}, "El stock mínimo no puede ser negativo"
+		return use_cases.CreateProductInput{}, tr(r, "error.product.min_stock")
 	}
 
 	categoriaID, _ := strconv.ParseInt(r.FormValue("categoria_id"), 10, 64)
@@ -302,27 +302,27 @@ func (h *ProductHandler) renderValidationError(w http.ResponseWriter, r *http.Re
 }
 
 // renderProductRows renders table rows for a list of products (HTMX fragment).
-func (h *ProductHandler) renderProductRows(w http.ResponseWriter, products []entities.Product) {
+func (h *ProductHandler) renderProductRows(w http.ResponseWriter, r *http.Request, products []entities.Product) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if len(products) == 0 {
-		fmt.Fprint(w, `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No hay productos</td></tr>`)
+		fmt.Fprintf(w, `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">%s</td></tr>`, tr(r, "products.empty"))
 		return
 	}
 
 	for i := range products {
-		h.writeProductRow(w, &products[i])
+		h.writeProductRow(w, r, &products[i])
 	}
 }
 
 // renderProductRow renders a single product table row (HTMX fragment).
-func (h *ProductHandler) renderProductRow(w http.ResponseWriter, product *entities.Product) {
+func (h *ProductHandler) renderProductRow(w http.ResponseWriter, r *http.Request, product *entities.Product) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	h.writeProductRow(w, product)
+	h.writeProductRow(w, r, product)
 }
 
 // writeProductRow writes a single <tr> for a product.
-func (h *ProductHandler) writeProductRow(w http.ResponseWriter, p *entities.Product) {
+func (h *ProductHandler) writeProductRow(w http.ResponseWriter, r *http.Request, p *entities.Product) {
 	stockClass := "text-gray-900"
 	if p.IsLowStock() {
 		stockClass = "text-red-600 font-medium"
@@ -334,8 +334,8 @@ func (h *ProductHandler) writeProductRow(w http.ResponseWriter, p *entities.Prod
 <td class="px-4 py-3 text-right text-gray-900">$%.2f</td>
 <td class="px-4 py-3 text-right %s">%.0f</td>
 <td class="px-4 py-3 text-right">
-<button hx-get="/productos/%d/edit" hx-target="#product-form-area" hx-swap="innerHTML" class="text-indigo-600 hover:text-indigo-800 text-sm mr-2">Editar</button>
-<button hx-delete="/productos/%d" hx-target="#product-%d" hx-swap="outerHTML" hx-confirm="¿Desactivar este producto?" class="text-red-500 hover:text-red-700 text-sm">Desactivar</button>
+<button hx-get="/productos/%d/edit" hx-target="#product-form-area" hx-swap="innerHTML" class="text-indigo-600 hover:text-indigo-800 text-sm mr-2">%s</button>
+<button hx-delete="/productos/%d" hx-target="#product-%d" hx-swap="outerHTML" hx-confirm="%s" class="text-red-500 hover:text-red-700 text-sm">%s</button>
 </td>
 </tr>`,
 		p.ID,
@@ -343,38 +343,49 @@ func (h *ProductHandler) writeProductRow(w http.ResponseWriter, p *entities.Prod
 		template.HTMLEscapeString(p.SKU),
 		p.PrecioVenta,
 		stockClass, p.StockActual,
-		p.ID,
-		p.ID, p.ID,
+		p.ID, tr(r, "products.action.edit"),
+		p.ID, p.ID, tr(r, "products.confirm.deactivate"), tr(r, "products.action.deactivate"),
 	)
 }
 
 // renderFormFallback renders a minimal product form when the template is not found.
-func (h *ProductHandler) renderFormFallback(w http.ResponseWriter, data map[string]interface{}) {
+func (h *ProductHandler) renderFormFallback(w http.ResponseWriter, r *http.Request, data map[string]interface{}) {
 	product := data["Product"].(*entities.Product)
 	isEdit := data["IsEdit"].(bool)
 
 	action := "/productos"
-	title := "Nuevo Producto"
+	title := tr(r, "page.products.new")
 	if isEdit {
 		action = fmt.Sprintf("/productos/%d", product.ID)
-		title = "Editar Producto"
+		title = tr(r, "page.products.edit")
 	}
 
-	html := fmt.Sprintf(`<form method="POST" action="%s" hx-post="%s" hx-target="#product-list" hx-swap="afterbegin" class="space-y-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+	form := `<form method="POST" action="%s" hx-post="%s" hx-target="#product-list" hx-swap="afterbegin" class="space-y-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
 <h3 class="text-lg font-bold text-gray-800">%s</h3>
 <div id="form-errors"></div>
 <div class="grid grid-cols-2 gap-4">
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label><input type="text" name="nombre" value="%s" required class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.name"}} *</label><input type="text" name="nombre" value="%s" required class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
 <div><label class="block text-sm font-medium text-gray-700 mb-1">SKU</label><input type="text" name="sku" value="%s" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Precio venta *</label><input type="number" name="precio_venta" value="%.2f" step="0.01" min="0.01" required class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Precio compra</label><input type="number" name="precio_compra" value="%.2f" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Stock actual</label><input type="number" name="stock_actual" value="%.0f" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Stock mínimo</label><input type="number" name="stock_minimo" value="%.0f" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Unidad</label><select name="unidad" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"><option value="unidad"%s>Unidad</option><option value="kg"%s>Kg</option><option value="litro"%s>Litro</option><option value="paquete"%s>Paquete</option></select></div>
-<div><label class="block text-sm font-medium text-gray-700 mb-1">Categoría ID</label><input type="number" name="categoria_id" value="%d" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.sale_price"}} *</label><input type="number" name="precio_venta" value="%.2f" step="0.01" min="0.01" required class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.purchase_price"}}</label><input type="number" name="precio_compra" value="%.2f" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.stock"}}</label><input type="number" name="stock_actual" value="%.0f" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.min_stock"}}</label><input type="number" name="stock_minimo" value="%.0f" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.unit"}}</label><select name="unidad" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"><option value="unidad"%s>{{call .T "product.form.unit"}}</option><option value="kg"%s>Kg</option><option value="litro"%s>{{call .T "product.unit.liter"}}</option><option value="paquete"%s>{{call .T "product.unit.package"}}</option></select></div>
+<div><label class="block text-sm font-medium text-gray-700 mb-1">{{call .T "product.form.category"}}</label><input type="number" name="categoria_id" value="%d" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm p-2 border"/></div>
 </div>
-<div class="flex gap-2"><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">Guardar</button><button type="button" onclick="document.getElementById('product-form-area').innerHTML=''" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium">Cancelar</button></div>
-</form>`,
+<div class="flex gap-2"><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">{{call .T "product.form.save"}}</button><button type="button" onclick="document.getElementById('product-form-area').innerHTML=''" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium">{{call .T "product.form.cancel"}}</button></div>
+</form>`
+	ft, err := template.New("product-fallback").Parse(form)
+	if err != nil {
+		http.Error(w, tr(r, "error.template"), 500)
+		return
+	}
+	var translated strings.Builder
+	if err := ft.Execute(&translated, data); err != nil {
+		http.Error(w, tr(r, "error.template"), 500)
+		return
+	}
+	html := fmt.Sprintf(translated.String(),
 		action, action, title,
 		template.HTMLEscapeString(product.Nombre),
 		template.HTMLEscapeString(product.SKU),

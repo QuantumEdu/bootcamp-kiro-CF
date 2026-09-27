@@ -33,21 +33,21 @@ func (h *AuthHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
 // Login handles PIN authentication (POST /login).
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		h.renderLogin(w, r, "Error al procesar el formulario")
+		h.renderLogin(w, r, tr(r, "error.form"))
 		return
 	}
 
 	pin := r.FormValue("pin")
 	if pin == "" {
-		h.renderLogin(w, r, "Ingrese su PIN")
+		h.renderLogin(w, r, tr(r, "login.error.pin"))
 		return
 	}
 
 	user, err := h.authUC.Execute(r.Context(), pin)
 	if err != nil {
-		msg := "PIN incorrecto"
+		msg := tr(r, "login.error.invalid")
 		if err == use_cases.ErrAuthAccountLocked {
-			msg = "Cuenta bloqueada temporalmente. Intente más tarde."
+			msg = tr(r, "login.error.locked")
 		}
 		h.renderLogin(w, r, msg)
 		return
@@ -79,7 +79,7 @@ func (h *AuthHandler) renderLogin(w http.ResponseWriter, r *http.Request, errMsg
 	// Try the login template; fall back to inline HTML if not found.
 	if t := h.tmpl.Lookup("login.html"); t != nil {
 		if err := t.Execute(w, data); err != nil {
-			http.Error(w, "Error de template", http.StatusInternalServerError)
+			http.Error(w, tr(r, "error.template"), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -104,7 +104,7 @@ func (h *AuthHandler) renderLogin(w http.ResponseWriter, r *http.Request, errMsg
 	// Parse and execute the fallback template with data.
 	ft, err := template.New("fallback-login").Parse(fallback)
 	if err != nil {
-		http.Error(w, "Error interno", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.internal"), http.StatusInternalServerError)
 		return
 	}
 	_ = ft.Execute(w, data)

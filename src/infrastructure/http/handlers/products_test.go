@@ -84,6 +84,8 @@ func setupProductHandler() (*ProductHandler, *mockProductRepo) {
 func makeFormRequest(values url.Values, htmx bool) *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/productos", strings.NewReader(values.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// These existing assertions cover Spanish validation messages.
+	req.AddCookie(&http.Cookie{Name: "lang", Value: "es"})
 	if htmx {
 		req.Header.Set("HX-Request", "true")
 	}

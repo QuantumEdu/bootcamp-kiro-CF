@@ -33,7 +33,7 @@ func (h *AdminConfigHandler) Show(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := WithUserContext(r, map[string]interface{}{
-		"PageTitle": "Configuración",
+		"PageTitle": tr(r, "page.config"),
 		"MaskedKey": masked,
 		"HasKey":    encrypted != "",
 	})
@@ -47,8 +47,8 @@ func (h *AdminConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	apiKey := strings.TrimSpace(r.FormValue("api_key"))
 	if apiKey == "" {
 		data := WithUserContext(r, map[string]interface{}{
-			"PageTitle": "Configuración",
-			"Error":     "La API key no puede estar vacía",
+			"PageTitle": tr(r, "page.config"),
+			"Error":     tr(r, "error.config.empty"),
 		})
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -58,12 +58,12 @@ func (h *AdminConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	encrypted, err := h.crypto.Encrypt(apiKey)
 	if err != nil {
-		http.Error(w, "Error al cifrar la clave", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.config.encrypt"), http.StatusInternalServerError)
 		return
 	}
 
 	if err := h.configRepo.Set(r.Context(), "openrouter_api_key", encrypted); err != nil {
-		http.Error(w, "Error al guardar la configuración", http.StatusInternalServerError)
+		http.Error(w, tr(r, "error.config.save"), http.StatusInternalServerError)
 		return
 	}
 

@@ -22,7 +22,7 @@ func NewLangHandler() *LangHandler {
 func (h *LangHandler) Switch(w http.ResponseWriter, r *http.Request) {
 	lang := r.FormValue("lang")
 	if lang != i18n.LangEN && lang != i18n.LangES {
-		http.Error(w, "Unsupported language", http.StatusBadRequest)
+		http.Error(w, tr(r, "error.lang"), http.StatusBadRequest)
 		return
 	}
 
