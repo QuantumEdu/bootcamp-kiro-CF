@@ -24,11 +24,17 @@ func main() {
 		queryTimeout = 5
 	}
 
+	secureCookies, err := strconv.ParseBool(getEnvDefault("SESSION_COOKIE_SECURE", "false"))
+	if err != nil {
+		log.Fatalf("SESSION_COOKIE_SECURE must be a boolean: %v", err)
+	}
+
 	cfg := bootstrap.Config{
 		AppEnv:              os.Getenv("APP_ENV"), // defaults to "" which means local
 		Port:                getEnvDefault("PORT", "8080"),
 		DatabasePath:        getEnvDefault("DATABASE_PATH", "./data/pos.db"),
 		SessionSecret:       sessionSecret,
+		SessionCookieSecure: secureCookies,
 		OpenRouterAPIKey:    os.Getenv("OPENROUTER_API_KEY"),
 		OpenRouterModel:     getEnvDefault("OPENROUTER_MODEL", "anthropic/claude-3-haiku"),
 		QueryTimeoutSeconds: queryTimeout,

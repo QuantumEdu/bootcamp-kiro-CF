@@ -208,3 +208,21 @@ func TestGenerateSQL_MalformedJSON_MockServer(t *testing.T) {
 		t.Errorf("expected ErrAIMalformedResponse, got: %v", err)
 	}
 }
+
+func TestGenerateSQL_MissingKeyMakesNoRequests(t *testing.T) {
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+	client := newTestClient(server.URL)
+	client.apiKey = ""
+	_, err := client.GenerateSQL(context.Background(), "show sales", "schema")
+	if !errors.Is(err, ErrAIUnavailable) {
+		t.Fatalf("error = %v, want AI unavailable", err)
+	}
+	if requests != 0 {
+		t.Fatalf("missing key made %d external requests", requests)
+	}
+}

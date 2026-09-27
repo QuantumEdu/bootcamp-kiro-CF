@@ -10,7 +10,9 @@ import (
 
 // LangHandler handles language switching via POST /lang.
 // Sets a "lang" cookie and redirects back to the referring page.
-type LangHandler struct{}
+type LangHandler struct {
+	SecureCookies bool // Explicit HTTPS policy for deployments behind a TLS proxy.
+}
 
 // NewLangHandler creates a new LangHandler.
 func NewLangHandler() *LangHandler {
@@ -32,24 +34,24 @@ func (h *LangHandler) Switch(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		MaxAge:   365 * 24 * 3600, // 1 year
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   h.SecureCookies || r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
 	})
 
 	// Redirect back to referring page, or home if no referer
-	referer := localReferer(r)
+	referer := localReferer(r, h.SecureCookies)
 	http.Redirect(w, r, referer, http.StatusSeeOther)
 }
 
 // localReferer allows only root-relative paths or the request's own origin.
-func localReferer(r *http.Request) string {
+func localReferer(r *http.Request, secureCookies bool) string {
 	u, err := url.Parse(r.Header.Get("Referer"))
 	if err != nil || u.User != nil || strings.Contains(u.Path, "\\") {
 		return "/"
 	}
 	if u.IsAbs() {
 		scheme := "http"
-		if r.TLS != nil {
+		if secureCookies || r.TLS != nil {
 			scheme = "https"
 		}
 		if u.Scheme != scheme || !strings.EqualFold(u.Host, r.Host) {

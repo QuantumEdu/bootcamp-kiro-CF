@@ -1,0 +1,26 @@
+# Allow only the source/build inputs needed by Dockerfile.render.
+# This excludes .git, data, local credentials, decks and private previews.
+*
+!go.mod
+!go.sum
+!cmd/
+!cmd/**
+!internal/
+!internal/**
+!src/
+!src/**
+!templates/
+!templates/**
+!static/
+!static/**
+!Dockerfile.render
+!.dockerignore
+# Keep credentials and databases out even inside an allowed source directory.
+**/.env*
+**/*.db
+**/*.db-*
+**/*.sqlite*
+**/*.pem
+**/*.key
+**/.git
+**/.git/**

@@ -1,5 +1,5 @@
 # Dockerfile.render — Web service for Render.com
-# Uses SQLite (local file) + OpenRouter — no PostgreSQL needed
+# Uses fresh ephemeral SQLite; AI stays unconfigured for the public demo
 # Build: docker build -f Dockerfile.render -t pos-ai-first .
 
 FROM golang:1.26-alpine AS builder
@@ -32,10 +32,9 @@ COPY --from=builder /pos-server /app/pos-server
 COPY templates/ /app/templates/
 COPY static/ /app/static/
 
-# Copy migrations (server auto-migrates on start)
-COPY migrations/ /app/migrations/
+# SQL migrations are embedded in the server binary.
 
-# Render mounts a persistent disk at /data — store SQLite DB there
+# Render Free uses ephemeral /data storage; never copy the local database
 RUN mkdir -p /data
 
 # Expose port (Render uses $PORT env var)

@@ -22,8 +22,8 @@ import (
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/application/use_cases"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/adapters"
 	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/database"
-	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/handlers"
 	infrahttp "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http"
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/handlers"
 	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 )
 
@@ -191,6 +191,11 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 		cleanup = func() { db.Close() }
 	}
 
+	// Render terminates TLS before the app. Configure cookies explicitly rather
+	// than trusting client-supplied forwarding headers; Lambda remains HTTPS-only.
+	secureCookies := cfg.SessionCookieSecure || cfg.AppEnv == "lambda"
+	sessionManager.Cookie.Secure = secureCookies
+
 	// Build router (shared between both modes)
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -211,7 +216,8 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 	// Public routes
 	r.Get("/login", authHandler.LoginPage)
 	r.Post("/login", authHandler.Login)
-	r.Post("/lang", handlers.NewLangHandler().Switch)
+	langHandler := &handlers.LangHandler{SecureCookies: secureCookies}
+	r.Post("/lang", langHandler.Switch)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {

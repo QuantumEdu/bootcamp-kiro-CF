@@ -74,6 +74,9 @@ type chatResp struct {
 
 // GenerateSQL sends a natural language query to OpenRouter and returns structured SQL response.
 func (c *OpenRouterClient) GenerateSQL(ctx context.Context, userQuery, systemPrompt string) (*NLSQLResponse, error) {
+	if strings.TrimSpace(c.apiKey) == "" {
+		return nil, ErrAIUnavailable
+	}
 	resp, err := c.callAPI(ctx, c.model, userQuery, systemPrompt)
 	if err != nil {
 		// On timeout, retry once with fallback model

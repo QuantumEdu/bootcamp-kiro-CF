@@ -12,6 +12,7 @@ type Config struct {
 	DatabaseURL         string // PostgreSQL connection string (lambda)
 	DatabasePath        string // SQLite path (local)
 	SessionSecret       string
+	SessionCookieSecure bool // Explicit HTTPS deployment policy; do not infer proxy headers.
 	BedrockModelID      string
 	BedrockRegion       string
 	MaxTokens           int
