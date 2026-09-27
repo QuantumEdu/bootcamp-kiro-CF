@@ -8,7 +8,7 @@ An educational showcase of an existing project, not an eligible University final
 
 [Kiro University Challenge](https://kiro.dev/2026/university/) describes seven required lessons and two optional bonuses, with some lessons specific to IDE, CLI or Web. The maximum possible award is 5,250 credits, not credits earned here. The final exam is due October 5, 2026 at 23:59 PDT and requires a new project whose first GitHub commit is September 21 or later. This project has earlier local history. Lesson completion and eligibility are not claimed.
 
-Official logo source: [Kiro wordmark](https://kiro.dev/images/kiro-wordmark.png?h=0ad65a93). Brand use identifies the learning tool and does not imply endorsement.
+Logo source: user-supplied purple Kiro word and ghost composite, embedded unchanged. Brand use identifies the learning tool and does not imply endorsement.
 
 ## Slide 1: POS AI-First learning showcase
 
@@ -23,7 +23,7 @@ Official logo source: [Kiro wordmark](https://kiro.dev/images/kiro-wordmark.png?
 - Kiro University learning showcase
 - Gabriel Magallon Sanchez
 
-**Speaker notes:** I am Gabriel Magallon Sanchez. This is an educational showcase of an existing POS project and documented learning with Kiro. It is not an eligible final-exam submission. The original bootcamp project predates the University challenge. Official program context: https://kiro.dev/2026/university/. Official logo: https://kiro.dev/images/kiro-wordmark.png?h=0ad65a93.
+**Speaker notes:** I am Gabriel Magallon Sanchez. This is an educational showcase of an existing POS project and documented learning with Kiro. It is not an eligible final-exam submission. The original bootcamp project predates the University challenge. Official program context: https://kiro.dev/2026/university/. Logo: user-supplied purple Kiro composite image, embedded unchanged.
 
 ---
 
@@ -561,6 +561,6 @@ Official logo source: [Kiro wordmark](https://kiro.dev/images/kiro-wordmark.png?
 - POS AI-First MVP
 - Educational showcase 2026
 
-**Speaker notes:** Thank you. This educational showcase preserves the existing project history and makes no final-exam eligibility or earned-credit claim. Program source: https://kiro.dev/2026/university/. Official Kiro logo: https://kiro.dev/images/kiro-wordmark.png?h=0ad65a93.
+**Speaker notes:** Thank you. This educational showcase preserves the existing project history and makes no final-exam eligibility or earned-credit claim. Program source: https://kiro.dev/2026/university/. Logo: user-supplied purple Kiro composite image, embedded unchanged.
 
 ---
