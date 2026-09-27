@@ -1,26 +1,29 @@
-# POS AI-First MVP
-
-## Bootcamp Kiro × Código Facilito, Hackathon 2026
+# POS AI-First: Kiro University Learning Showcase
 
 **Presenter:** Gabriel Magallon Sanchez
 
-The app defaults to English and supports Spanish through its language switch. Render deployment remains pending. Keep the existing 22-slide design and use the English PowerPoint alongside these notes.
+An educational showcase of an existing project, not an eligible University final-exam submission. Original project history remains intact. English is the app default, Spanish is available and Render deployment remains pending.
 
-## Slide 1: POS AI-First MVP
+## Official program context
+
+[Kiro University Challenge](https://kiro.dev/2026/university/) describes seven required lessons and two optional bonuses, with some lessons specific to IDE, CLI or Web. The maximum possible award is 5,250 credits, not credits earned here. The final exam is due October 5, 2026 at 23:59 PDT and requires a new project whose first GitHub commit is September 21 or later. This project has earlier local history. Lesson completion and eligibility are not claimed.
+
+Official logo source: [Kiro wordmark](https://kiro.dev/images/kiro-wordmark.png?h=0ad65a93). Brand use identifies the learning tool and does not imply endorsement.
+
+## Slide 1: POS AI-First learning showcase
 
 **On-slide copy:**
 
-- HACKATHON 2026
+- SHOWCASE 2026
 - POS AI-First MVP
 - Your business answers questions.
 - A point of sale where asking your data feels as natural as sending a message.
 - código facilito
 - ×
-- kiro
-- Bootcamp Kiro × Código Facilito
+- Kiro University learning showcase
 - Gabriel Magallon Sanchez
 
-**Speaker notes:** Hello, I am Gabriel Magallon Sanchez. POS AI-First helps a small business owner record sales and ask questions about their data. The interface defaults to English and also supports Spanish.
+**Speaker notes:** I am Gabriel Magallon Sanchez. This is an educational showcase of an existing POS project and documented learning with Kiro. It is not an eligible final-exam submission. The original bootcamp project predates the University challenge. Official program context: https://kiro.dev/2026/university/. Official logo: https://kiro.dev/images/kiro-wordmark.png?h=0ad65a93.
 
 ---
 
@@ -66,70 +69,70 @@ The app defaults to English and supports Spanish through its language switch. Re
 
 ---
 
-## Slide 4: Hackathon MVP scope
+## Slide 4: Kiro University learning framework
 
 **On-slide copy:**
 
-- 03 · CHALLENGE
-- A working MVP for the hackathon
-- Business value, working software and a documented Kiro workflow.
+- 03 · UNIVERSITY
+- Kiro University learning framework
+- Official course structure. This showcase does not claim lesson completion.
 - 01
-- Define
-- Specs
+- Study
+- Lessons
 - 02
-- Build
-- Core POS
+- Apply
+- POS project
 - 03
-- Extend
-- AI chat
+- Document
+- Evidence
 - 04
-- Check
-- Tests
+- Verify
+- Behavior
 - 05
-- Prepare
-- Deploy
-- POS
-- Sales
-- AI
-- Questions
-- UI
-- EN / ES
-- GO
-- Backend
+- Share
+- Learning
+- 7
+- Required lessons
+- 2
+- Optional bonuses
+- 3
+- IDE / CLI / Web
+- 5,250
+- Potential credits
 
-**Speaker notes:** The original project plan targeted a five-day hackathon build. This slide presents the scope rather than asserting a measured development duration or unverified judging weights. The deliverable combines point-of-sale operations, AI questions and a bilingual interface. Deployment is still pending.
+**Speaker notes:** The official program includes seven required lessons and two optional bonuses. Some lessons use the IDE, CLI or Web specifically. The maximum possible award is 5,250 credits, not an award this project has earned. The final-exam deadline is October 5, 2026 at 23:59 PDT. No lesson names or completion status are inferred. Source: https://kiro.dev/2026/university/.
 
 ---
 
-## Slide 5: Project selection criteria
+## Slide 5: Educational showcase scope
 
 **On-slide copy:**
 
-- 04 · DECISION
-- Why this MVP?
-- A concrete business workflow with a focused AI use case.
-- CRITERION
-- Feasibility
-- Scope
-- Focused
-- Stack
-- Go + HTMX
-- CRITERION
-- Business value
-- Users
-- Small shops
-- Workflow
-- Sales
-- SELECTED
+- 04 · SHOWCASE
+- An existing project, an educational showcase
+- A learning demonstration with original history intact.
+- HISTORY
+- Existing project
+- Local start
+- July 21, 2026
+- History
+- Unchanged
+- PROGRAM
+- New-build rule
+- First commit
+- Sept 21 or later
+- Context
+- Challenge
+- SHOWCASE
 - POS AI-First
-- Data
-- Sales
-- Feature
-- AI chat
-- Small business + NL-to-SQL
-- Project analysis defines the scope and the reason for choosing this MVP.
+- Learning
+- Documented
+- Eligibility
+- Not claimed
+- Existing POS case study
+- Educational use only. No final-exam eligibility or credit award claimed.
 
-**Speaker notes:** The previous material describes evaluating several ideas. This slide preserves the decision story without presenting fictional Idea A and Idea B ratings. A manageable scope and a useful question over sales data explain the POS choice.
+**Speaker notes:** The local repository begins July 21, 2026. The official exam requires a new project built during the challenge and a first GitHub commit on or after September 21. This showcase does not satisfy or claim that new-project requirement. Creating a repository or rewriting dates would not turn earlier work into a new build. No history changes are part of this presentation update. Source: https://kiro.dev/2026/university/.
 
 ---
 
@@ -158,12 +161,12 @@ The app defaults to English and supports Spanish through its language switch. Re
 
 ---
 
-## Slide 7: Kiro development workflow
+## Slide 7: Documented Kiro workflow
 
 **On-slide copy:**
 
-- 06 · KIRO
-- Kiro development workflow
+- 06 · LEARNING
+- Documented Kiro workflow
 - S
 - Specs
 - Requirements, design, tasks
@@ -176,9 +179,9 @@ The app defaults to English and supports Spanish through its language switch. Re
 - H
 - Hooks
 - Workflow automation
-- Task dependencies guide the implementation order
+- Project artifacts support the learning story
 
-**Speaker notes:** Specs clarify requirements before implementation. Steering captures recurring project rules. Powers and hooks support context and workflow automation. Dependency planning helps identify work that can proceed independently. These are development aids, not proof that every task executed without conflicts.
+**Speaker notes:** Specs clarify requirements before implementation. Steering captures recurring project rules. Powers and hooks support context and workflow automation. Dependency planning helps identify work that can proceed independently. These are development aids, not proof that every task executed without conflicts. These are documented project practices, not a mapping that proves all University lessons complete. Program source: https://kiro.dev/2026/university/.
 
 ---
 
@@ -257,24 +260,24 @@ The app defaults to English and supports Spanish through its language switch. Re
 
 ---
 
-## Slide 11: Cross-device project access
+## Slide 11: Kiro surfaces and available evidence
 
 **On-slide copy:**
 
-- 10 · PROJECT ACCESS
-- Development and review across devices
-- D
-- DESKTOP
-- Build locally
+- 10 · SURFACES
+- Kiro surfaces and available evidence
+- I
+- IDE
+- Project artifacts
+- C
+- CLI
+- Separate evidence
 - W
 - WEB
-- Read project files
-- M
-- MOBILE
-- Review issues
-- GIT AND SHARED PROJECT ARTIFACTS
+- Separate evidence
+- SURFACE USE NEEDS ITS OWN EVIDENCE
 
-**Speaker notes:** Local development, browser access to repository artifacts and mobile issue review are different activities. Git and shared documentation support continuity. This slide does not claim an official Kiro mobile application or automatic synchronization of every environment.
+**Speaker notes:** The University page distinguishes IDE, CLI and Web lessons. This project contains IDE-oriented artifacts. CLI or Web completion needs actual evidence, not a diagram. No cross-device synchronization or completed University lesson is claimed here. Source: https://kiro.dev/2026/university/.
 
 ---
 
@@ -407,12 +410,12 @@ The app defaults to English and supports Spanish through its language switch. Re
 
 ---
 
-## Slide 17: Lessons learned
+## Slide 17: Lessons from the project
 
 **On-slide copy:**
 
-- 16 · LESSONS
-- Strong foundations support reliable progress
+- 16 · REFLECTION
+- Lessons from an existing project
 - Steering
 - Consistency
 - LTM
@@ -431,7 +434,7 @@ The app defaults to English and supports Spanish through its language switch. Re
 - Broader input coverage
 - People direct the work. AI supports execution.
 
-**Speaker notes:** Steering and memory help maintain context. Specs clarify intent, and dependency planning supports coordination. Generated SQL needs independent safeguards. Property tests explore more inputs than a few examples, but they do not prove universal correctness.
+**Speaker notes:** Steering and memory help maintain context. Specs clarify intent, and dependency planning supports coordination. Generated SQL needs independent safeguards. Property tests explore more inputs than a few examples, but they do not prove universal correctness. These are project reflections, not official University syllabus titles.
 
 ---
 
@@ -553,12 +556,11 @@ The app defaults to English and supports Spanish through its language switch. Re
 
 - código facilito
 - ×
-- kiro
 - Thank you
 - Questions?
 - POS AI-First MVP
-- Hackathon 2026
+- Educational showcase 2026
 
-**Speaker notes:** Thank you. I am Gabriel Magallon Sanchez. Questions can cover the POS workflow, bilingual UI, SQL safeguards, adapter boundaries and the remaining Render deployment work.
+**Speaker notes:** Thank you. This educational showcase preserves the existing project history and makes no final-exam eligibility or earned-credit claim. Program source: https://kiro.dev/2026/university/. Official Kiro logo: https://kiro.dev/images/kiro-wordmark.png?h=0ad65a93.
 
 ---
