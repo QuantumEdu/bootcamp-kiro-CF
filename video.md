@@ -1,154 +1,119 @@
-# Guión de Video: POS AI-First MVP (5 minutos)
+# POS AI-First MVP: English Video Script
 
-## Bootcamp Kiro × Código Facilito — Hackathon 2026
+## Bootcamp Kiro × Código Facilito, Hackathon 2026
 
----
+**Presenter:** Gabriel Magallon Sanchez
 
-## Estructura temporal
+**Target length:** approximately five minutes, including demo pauses. Rehearse and trim to the event limit.
+**Current status:** local app verified. Render deployment remains pending. Use a local recording until hosted checks pass.
 
-| Sección | Duración | Acumulado |
-|---------|----------|-----------|
-| Intro + Problema | 0:30 | 0:30 |
-| Solución + Demo conceptual | 0:45 | 1:15 |
-| Cómo lo construí (Kiro completo) | 1:15 | 2:30 |
-| Demo en vivo | 1:15 | 3:45 |
-| Arquitectura + Seguridad | 0:30 | 4:15 |
-| Cierre + Próximos pasos | 0:45 | 5:00 |
+## Recording plan
 
----
+| Section | Time | Visual |
+|---------|------|--------|
+| Problem | 0:00–0:30 | Title and business-owner scenario |
+| Solution | 0:30–1:10 | App and language switch |
+| Kiro workflow | 1:10–2:15 | Actual project artifacts in the IDE |
+| App demo | 2:15–3:40 | Local POS screencast |
+| Architecture and safeguards | 3:40–4:20 | Architecture and security slides |
+| Results and next steps | 4:20–5:00 | Results, Render preparation and closing |
 
-## Sección 1: Intro + Problema (0:00 – 0:30)
+## 1. Problem (0:00–0:30)
 
-**Visual:** Pantalla con título del proyecto, luego cut a una persona abriendo hojas de cálculo frustrada.
+**Visual:** Project title. Cut to a small-business owner reviewing sales records.
 
-**Narración:**
-> "Hola, soy Lupita. Soy dueña de una taquería y se me complica estar registrando y ordenando pedidos y ventas, sobretodo saber cuánto vendí hoy. Actualmente abro Excel, filtro por fecha, sumo columnas... o le pido a alguien. ¿Y si pudiera simplemente preguntar, como en WhatsApp, '¿qué vendí hoy?' y recibir la respuesta al instante?"
-
-**Notas de producción:** Transición rápida, energética. Máximo 2 tomas.
-
----
-
-## Sección 2: Solución + Demo conceptual (0:30 – 1:15)
-
-**Visual:** Screencast del chat bar del POS. Se escribe "¿Qué producto se vendió más esta semana?" y aparece la respuesta.
-
-**Narración:**
-> "Construí un POS que habla. El usuario escribe una pregunta en español, el sistema genera una consulta SQL segura usando AI, la ejecuta contra sus datos reales, y devuelve la respuesta formateada. Todo en menos de 5 segundos."
+**Narration:**
+> Hi, I am Gabriel Magallon Sanchez. Imagine Lupita, a taquería owner, finishing a busy day. She has recorded sales, but answering a simple question still takes work: what did I sell today?
 >
-> "Pero no es solo chat. Es un POS completo: productos, ventas, clientes, dashboard con métricas en tiempo real, y el chat como feature diferenciador."
+> POS AI-First combines everyday point-of-sale tasks with a conversational way to explore business data.
 
-**Notas de producción:** Mostrar el flujo completo con overlay de las 5 capas de seguridad como badges.
+**Production note:** Lupita is a fictional user scenario. Do not present her as an interviewed customer.
 
----
+## 2. Solution (0:30–1:10)
 
-## Sección 3: Cómo lo construí — Kiro completo (1:15 – 2:30)
+**Visual:** Open the English UI, show the Spanish switch, then return to English.
 
-**Visual:** Pantalla de Kiro IDE mostrando specs, steering, agents, hooks, MCP y el power empaquetado.
-
-**Narración:**
-> "Lo construí en 5 días usando Kiro. Pero no fue 'open IDE y empezar a codear'. Seguí un proceso estructurado con cada feature de Kiro:"
-
-> "**Spec-driven development:** Tres specs completos — requirements, design, tasks — con ejecución en waves paralelas. 100 tareas ejecutadas sin conflictos gracias al grafo de dependencias."
-
-> "**Steering files:** Seis archivos que definen cómo trabaja mi proyecto en cada sesión. Arquitectura hexagonal, testing obligatorio en auth y NL→SQL, seguridad, quality con golangci-lint, convenciones y patrones. Kiro los carga automáticamente — no tengo que repetir las reglas."
-
-> "**Custom agents:** Dos agentes especializados. El NL→SQL Security Reviewer audita las 5 capas del pipeline de seguridad y reporta PASS, WARN o CRITICAL por capa. El Seed Data Generator crea datos realistas de taquería respetando las reglas del dominio."
-
-> "**Hooks:** Siete hooks de automatización. Lint al guardar, tests al completar una tarea, gate de seguridad antes de iniciar cualquier tarea, validación del pipeline NL→SQL cuando cambian esos archivos, y captura automática de memoria para el LTM Power."
-
-> "**MCP:** Dos servidores activos. SQLite MCP para inspeccionar la base de datos en vivo sin salir del IDE — fundamental para debuggear las queries generadas por AI. Context7 para documentación actualizada de chi, pgx y SCS directo en el contexto del agente."
-
-> "**Powers:** Long-Term Memory para persistencia entre sesiones. Y el bonus — empaqué todo esto como un Kiro Power instalable con POWER.md, mcp.json y dos steering files de dominio."
-
-**Notas de producción:** Mostrar brevemente cada feature mientras se menciona. Speed up en la navegación. Highlight en el Power empaquetado al final de esta sección.
-
----
-
-## Sección 4: Demo en vivo (2:30 – 3:45)
-
-**Visual:** Screencast del POS funcionando en Render (URL real en producción).
-
-**Narración:**
-> "Vamos a la demo. El POS está deployado en Render — gratis, con disco persistente para SQLite."
-
-> "Login con PIN — autenticación bcrypt con lockout por intentos fallidos."
-
-*[Muestra login con PIN]*
-
-> "Dashboard: ventas de hoy, productos más vendidos, alertas de stock bajo. Se actualiza solo cada 30 segundos con HTMX."
-
-*[Muestra dashboard con métricas]*
-
-> "Registro de venta: selecciono productos, agrego al carrito, completo. El inventario se actualiza automáticamente."
-
-*[Muestra flujo de venta]*
-
-> "Y ahora, la estrella: '¿Cuántas ventas hubo esta semana?'"
-
-*[Escribe en chat, espera respuesta]*
-
-> "Respuesta en 3 segundos. SQL generado, validado, ejecutado en read-only con timeout. 5 capas de seguridad entre el LLM y mi base de datos."
-
-**Notas de producción:** Pregrabar la demo como backup. Si es en vivo, tener datos seeded. La parte del chat es el clímax del video.
-
----
-
-## Sección 5: Arquitectura + Seguridad (3:45 – 4:15)
-
-**Visual:** Diagrama de arquitectura hexagonal. Luego los 5 escudos de seguridad NL→SQL.
-
-**Narración:**
-> "La arquitectura es hexagonal: el dominio no importa frameworks, los use-cases orquestan, y la infraestructura implementa los adaptadores. Gracias a esto, migré de SQLite a PostgreSQL para AWS con 7 archivos nuevos — cero cambios en el dominio."
+**Narration:**
+> The app starts in English and also supports Spanish. The language switch changes the interface while preserving product names and stored business data.
 >
-> "El mismo código corre local con SQLite, en Render con SQLite persistente, o en Lambda con PostgreSQL. Un switch en el bootstrap según APP_ENV."
+> An owner can manage products and customers, register sales and view dashboard metrics. They can also ask a question such as: which product sold the most this week?
 >
-> "Seguridad NL→SQL: 5 capas. Prompt, validación Go, conexión read-only, timeout con LIMIT, y auditoría. No confiamos en el LLM — cada capa es un guardia independiente."
+> The AI provider proposes a SQL query. The application checks that query before execution. The selected language also guides the provider's response.
 
-**Notas de producción:** Diagrama animado con los adaptadores intercambiables. 30 segundos máximo.
+**Production note:** Local tests verify language selection and prompt instructions. Verify an actual external AI response before recording it. Do not claim a response-time benchmark.
 
----
+## 3. Kiro workflow (1:10–2:15)
 
-## Sección 6: Cierre (4:15 – 5:00)
+**Visual:** Show the actual specs, steering files, custom agents, hooks and Power materials that exist in the project.
 
-**Visual:** Resumen de métricas + pantalla del Power empaquetado + QR al repo.
-
-**Narración:**
-> "En 5 días: 3 specs, 100+ tareas en paralelo, arquitectura hexagonal limpia, chat AI en español, deploy en Render con $0 de costo, y un Kiro Power empaquetado e instalable."
+**Narration:**
+> I used Kiro to support a structured development workflow. Specs describe requirements, design decisions and implementation tasks before code changes.
 >
-> "Todos los requisitos del hackathon cubiertos: spec-driven, steering, hooks, property tests, powers, MCP, custom agents — y el bonus del power empaquetado."
+> Steering files capture project rules for architecture, testing, security and conventions. They help maintain the same expectations across sessions.
 >
-> "Kiro no es solo autocomplete. Es un sistema que entiende tu proyecto, mantiene contexto, ejecuta en paralelo respetando dependencias, y trabaja con las reglas que vos definís. Así se construye software en 2026."
+> The project also includes specialist agent instructions, workflow hooks and long-term memory materials. These support security checks, realistic demo data and continuity between sessions.
 >
-> "Gracias."
+> The useful lesson is that the person defines the goal and constraints. AI helps execute within them. I still need to inspect the result, run tests and distinguish verified behavior from assumptions.
 
-**Notas de producción:** Grid animado de métricas. Screenshot del Power instalado en Kiro. QR al repo. Terminar en exactamente 5:00.
+**Production note:** Show only configured tools and artifacts you can verify. Do not imply that a historical MCP connection is currently active or that every hook has run successfully. Avoid displaying API keys, PINs or other credentials.
 
----
+## 4. App demo (2:15–3:40)
 
-## Checklist de producción del video
+**Visual:** Local screencast with prepared, clearly identified demo data. Leave short pauses for each action.
 
-- [ ] Grabar screencast de demo con datos seeded en Render
-- [ ] Preparar backup de demo en caso de fallo de red
-- [ ] Mostrar Kiro IDE con specs, steering, agents, hooks, MCP en la sección 3
-- [ ] Mostrar el Power empaquetado (`kiro-power/POWER.md`) brevemente
-- [ ] Grabar narración por separado (mejor audio)
-- [ ] Editar con overlays de texto para puntos clave de cada feature
-- [ ] Verificar que el video dura exactamente ≤ 5:00
-- [ ] Exportar en 1080p mínimo
-- [ ] Subir copia a Google Drive como backup
-- [ ] Probar reproducción antes de la presentación
+**Narration:**
+> Here is the working app. First, I sign in with a PIN. Authentication checks the PIN and handles failed attempts.
 
----
+*[Show login without exposing a production credential.]*
 
-## Mapa de features Kiro → sección del video
+> The dashboard shows sales metrics and stock information. I can switch to Spanish and back to English. The data stays the same.
 
-| Feature Kiro | Minuto | Evidencia visual |
-|-------------|--------|-----------------|
-| Spec-driven development | 1:15 | `.kiro/specs/` con 3 specs abiertos |
-| Steering documents | 1:25 | `.kiro/steering/` — 8 archivos |
-| Custom agents | 1:35 | `.kiro/agents/nl-sql-security-reviewer.md` |
-| Hooks | 1:45 | `.kiro/hooks/` — 7 hooks, uno disparándose |
-| MCP | 1:55 | sqlite-pos conectado, query en vivo |
-| Powers (LTM) | 2:05 | `ltm/runtime/active-context.json` |
-| Power empaquetado | 2:15 | `kiro-power/POWER.md` con frontmatter |
-| Property-based tests | — | Mencionar en arquitectura: `TestRequireRole_Property_*` |
+*[Show dashboard and both languages.]*
+
+> Next, I open the product list and the customer form. These are part of the same sales workflow.
+
+*[Show a product and a demo customer.]*
+
+> I select a product, add it to the cart and complete a sale. The application records the sale and updates inventory through its business logic.
+
+*[Complete the sale and show the resulting state.]*
+
+> Now I ask: what did I sell today? With a configured provider, the app validates the generated query before reading the data. The answer should match the records from this demo.
+
+*[Show a verified real response. If unavailable, show the localized provider error and state the limitation honestly.]*
+
+**Production note:** Do not narrate example slide amounts as real results. Record the actual amount and sale count. Prepare a recorded backup before the event. A Render URL belongs here only after deployment and hosted verification succeed.
+
+## 5. Architecture and safeguards (3:40–4:20)
+
+**Visual:** Slides 12, 13 and 19.
+
+**Narration:**
+> The architecture separates domain rules, application use cases and infrastructure adapters. Repository ports allow different database implementations without tying a sale to a hosting provider.
+>
+> AI-generated SQL needs more than a prompt. The pipeline combines prompt restrictions with validation, a read-only query connection, bounded execution and audit records.
+>
+> The repository includes SQLite and PostgreSQL adapters and an AWS integration path. That code is different from proof of a running cloud deployment.
+
+## 6. Results and next steps (4:20–5:00)
+
+**Visual:** Results slide, Render preparation slide, then closing slide.
+
+**Narration:**
+> The current result is a working local POS with an English default, Spanish support and an AI-query workflow. Local tests and the build pass. Existing lint findings remain, and live provider behavior still needs verification.
+>
+> The next target is Render's free plan. Deployment is pending. Before going live, I need to confirm database durability, configure secrets and test login, sales and AI responses on the hosted service.
+>
+> This MVP shows how a focused business workflow, clear architecture and guided AI development can work together. Thank you.
+
+## Production checklist
+
+- [ ] Prepare local demo data and identify it as illustrative.
+- [ ] Verify the live AI response and record its actual result.
+- [ ] Show the English default and Spanish switch.
+- [ ] Keep secrets and real customer data out of the recording.
+- [ ] Show only project artifacts and integrations that are available.
+- [ ] Prepare a demo recording as a backup.
+- [ ] Rehearse narration and pauses within the event's video limit.
+- [ ] Export at 1080p or higher and test playback.
+- [ ] Replace local footage with hosted footage only after Render deployment and validation.

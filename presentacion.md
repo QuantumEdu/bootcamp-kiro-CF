@@ -1,396 +1,564 @@
-# Presentación: POS AI-First MVP
+# POS AI-First MVP
 
-## Bootcamp Kiro + Código Facilito — Hackathon 2026
+## Bootcamp Kiro × Código Facilito, Hackathon 2026
 
----
+**Presenter:** Gabriel Magallon Sanchez
 
-## Diapositiva 1: Portada
+The app defaults to English and supports Spanish through its language switch. Render deployment remains pending. Keep the existing 22-slide design and use the English PowerPoint alongside these notes.
 
-**Título:** POS AI-First MVP — Tu negocio responde preguntas  
-**Subtítulo:** Bootcamp Kiro × Código Facilito | Hackathon 2026  
-**Comentarios para el presentador:** Saluda al público, presenta tu nombre y el proyecto en una frase: "Un punto de venta donde le preguntas a tus datos y te responden."  
-**Propuesta de diseño:** Fondo oscuro con gradiente azul-violeta, logo de Kiro + Código Facilito, mockup del chat POS en el centro.
+## Slide 1: POS AI-First MVP
 
----
+**On-slide copy:**
 
-## Diapositiva 2: El Problema
+- HACKATHON 2026
+- POS AI-First MVP
+- Your business answers questions.
+- A point of sale where asking your data feels as natural as sending a message.
+- código facilito
+- ×
+- kiro
+- Bootcamp Kiro × Código Facilito
+- Gabriel Magallon Sanchez
 
-**Título:** ¿Por qué un POS inteligente?  
-**Descripción:**
-- Los dueños de pequeños negocios no tienen tiempo de revisar reportes
-- Las preguntas son simples: "¿Qué vendí hoy?", "¿Qué se está agotando?"
-- La respuesta debería ser tan fácil como preguntar en WhatsApp
-
-**Comentarios para el presentador:** Conecta con la audiencia — "Imaginen que el dueño de una taquería quiere saber sus ventas del día sin abrir Excel ni pedir ayuda."  
-**Propuesta de diseño:** Ilustración de un dueño de negocio frustrado con hojas de cálculo vs. una burbuja de chat simple.
+**Speaker notes:** Hello, I am Gabriel Magallon Sanchez. POS AI-First helps a small business owner record sales and ask questions about their data. The interface defaults to English and also supports Spanish.
 
 ---
 
-## Diapositiva 3: La Solución
+## Slide 2: The business owner needs answers
 
-**Título:** Chat NL→SQL: Pregunta en español, obtén respuestas de tus datos  
-**Descripción:**
-- El usuario escribe: "¿Qué producto se vendió más esta semana?"
-- El sistema genera SQL seguro via OpenRouter API
-- Ejecuta contra SQLite (read-only, validado, con timeout)
-- Devuelve respuesta formateada en español
+**On-slide copy:**
 
-**Comentarios para el presentador:** Demo rápida mental — "Es literalmente escribir una pregunta y recibir la respuesta como si hablaras con un asistente."  
-**Propuesta de diseño:** Screenshot del chat bar con una pregunta y respuesta real. Flechas mostrando el flujo: pregunta → AI → SQL → datos → respuesta.
+- 01 · PROBLEM
+- The owner needs answers, not more reports
+- “What did I sell today?”
+- Without spreadsheet filters or manual totals.
+- A direct answer
+- Business data in natural language.
 
----
-
-## Diapositiva 4: Objetivo del Hackathon
-
-**Título:** Construir un MVP funcional en 5 días  
-**Descripción:**
-- Criterios de evaluación: Impacto tecnológico (30%), Innovación (30%), Software funcional (30%), Uso de AWS + Kiro (10%)
-- Meta: POS completo con CRUD, ventas, dashboard, y el chat AI como diferenciador
-- Stack: Go + HTMX + SQLite + OpenRouter
-
-**Comentarios para el presentador:** Enfatiza que es un proyecto real ejecutable, no un mockup.  
-**Propuesta de diseño:** Timeline horizontal de 5 días con iconos representativos de cada fase.
+**Speaker notes:** Imagine a taquería owner closing the day. They want to understand sales and inventory without searching through spreadsheet rows. This scenario motivates the MVP, rather than a measured market statistic.
 
 ---
 
-## Diapositiva 5: Onboarding — De 3 proyectos a 1
+## Slide 3: Questions in English or Spanish
 
-**Título:** El proceso de selección: 3 ideas → 1 MVP  
-**Descripción:**
-- En el bootcamp se presentaron 3 propuestas de proyecto a evaluar
-- Se analizó viabilidad técnica, impacto, e innovación de cada una
-- Se eligió el POS AI-First por combinar impacto real en PYMES + diferenciador técnico (NL→SQL)
-- Pre-análisis documentado: `bootcamp-analysis.md`, `Deeper-analysis.md`, `constitution.md`
+**On-slide copy:**
 
-**Comentarios para el presentador:** "No fue solo 'tengo una idea'. Evaluamos 3 opciones con criterios claros. Este proceso de decisión es parte del valor de trabajar con Kiro — todo queda documentado."  
-**Propuesta de diseño:** Tabla comparativa de 3 proyectos con checkmarks indicando por qué ganó el POS AI-First.
+- 02 · SOLUTION
+- Ask in English or Spanish. Explore your data.
+- NL-to-SQL chat for small businesses, with checks before execution.
+- 01
+- QUESTION
+- Which product sold the most?
+- 02
+- AI
+- Generates a SQL query
+- 03
+- DATA
+- SQLite read-only
+- 04
+- ANSWER
+- Selected-language prompt
+- “What did I sell today?”
+- →
+- Example: $12,480 across 37 sales.
 
----
-
-## Diapositiva 6: Cómo empecé — Análisis previo
-
-**Título:** Fase 0: Investigación y análisis  
-**Descripción:**
-- Analicé múltiples proyectos POS existentes para encontrar el diferenciador
-- Creé documentos de pre-análisis (`Pre-analisis/bootcamp-analysis.md`, `Deeper-analysis.md`)
-- Definí la "constitution" del proyecto: reglas, alcance, no-goals
-- Usé Wayfinder para research tickets (modelo de datos, NL→SQL, dashboard, seguridad)
-
-**Comentarios para el presentador:** "Antes de escribir una línea de código, invertí tiempo entendiendo qué construir y por qué. Esto es lo que Kiro te permite hacer de forma estructurada."  
-**Propuesta de diseño:** Captura de pantalla de los archivos de pre-análisis y el mapa de wayfinder.
-
----
-
-## Diapositiva 7: Kiro como copiloto de desarrollo
-
-**Título:** El poder de Kiro: Specs, Steering, Powers y Hooks  
-**Descripción:**
-- **Specs:** Workflow estructurado Requirements → Design → Tasks, con ejecución paralela por waves
-- **Steering:** Reglas persistentes del proyecto (arquitectura, testing, seguridad, quality, convenciones, design patterns)
-- **Powers:** LTM para memoria entre sesiones, Context7 para docs actualizados, Power Builder para crear powers custom
-- **Hooks:** Automatización (lint on save, test after task, auto-doc de prompts)
-- **Task DAG:** Grafo de dependencias para ejecutar tareas en paralelo sin conflictos
-
-**Comentarios para el presentador:** "Kiro no es solo autocomplete. Es un sistema que entiende tu proyecto, mantiene contexto, ejecuta tareas en paralelo respetando dependencias, y trabaja con reglas que tú defines. 5 steering files definen cómo trabaja MI proyecto."  
-**Propuesta de diseño:** Diagrama de 4 cuadrantes: Specs | Steering | Powers | Hooks, con iconos y 1-liner de cada uno.
+**Speaker notes:** The application sends a selected-language instruction to the AI provider, validates the generated query and executes accepted queries against business data. English and Spanish UI rendering and prompt selection pass local tests. A live external-provider response still needs verification. The figures on this slide are illustrative, not measured demo results.
 
 ---
 
-## Diapositiva 8: Steering — Las reglas del proyecto
+## Slide 4: Hackathon MVP scope
 
-**Título:** Steering files: tu proyecto siempre consistente  
-**Descripción:**
-- `architecture.md` — Hexagonal ligera, reglas de capas, SOLID práctico
-- `testing.md` — TDD obligatorio en auth/inventario/NL→SQL, cobertura mínima por capa
-- `security.md` — Whitelist SQL, bcrypt PINs, read-only connections
-- `quality.md` — golangci-lint, funciones <40 líneas, errores siempre manejados
-- `project-conventions.md` — Stack, dependencias aprobadas, commits convencionales
-- `design-patterns.md` — Patrones pragmáticos, anti-sobreingeniería
+**On-slide copy:**
 
-**Comentarios para el presentador:** "Estas reglas se cargan automáticamente en cada sesión. No tengo que repetir 'usa hexagonal' — Kiro ya lo sabe."  
-**Propuesta de diseño:** Lista con iconos de candado/check, mostrando fragmentos de código de cada archivo.
+- 03 · CHALLENGE
+- A working MVP for the hackathon
+- Business value, working software and a documented Kiro workflow.
+- 01
+- Define
+- Specs
+- 02
+- Build
+- Core POS
+- 03
+- Extend
+- AI chat
+- 04
+- Check
+- Tests
+- 05
+- Prepare
+- Deploy
+- POS
+- Sales
+- AI
+- Questions
+- UI
+- EN / ES
+- GO
+- Backend
 
----
-
-## Diapositiva 9: Powers — Long-Term Memory
-
-**Título:** Power: Long-Term Memory — Tu proyecto nunca olvida  
-**Descripción:**
-- Memoria local persistente entre sesiones
-- 3 niveles: archivos recientes (Tier 1) → búsqueda en decisiones (Tier 2) → detalle completo (Tier 3)
-- Guarda checkpoints, decisiones, hilos abiertos
-- Recall barato: "Pick up where we left off"
-- No necesita servicios externos, todo local en `ltm/`
-
-**Comentarios para el presentador:** "Si cierro Kiro hoy y vuelvo mañana, no pierdo contexto. LTM recuerda qué archivos toqué, qué decisiones tomé, y qué queda pendiente."  
-**Propuesta de diseño:** Diagrama de 3 tiers con flechas de escalamiento progresivo. Ejemplo de comando "Remember this project."
-
----
-
-## Diapositiva 10: Sincronización y GitHub
-
-**Título:** Sync + GitHub: Trabajo en cualquier dispositivo  
-**Descripción:**
-- Kiro Sync Files: workspace local ↔ Kiro cloud (app.dev)
-- GitHub: issues, milestones, labels, projects para tracking
-- 20 issues creadas automáticamente desde tasks.md
-- Milestone "POS AI-First MVP" con dependency tracking
-- GitHub Project Board V2 con Kanban (Backlog/In Progress/Review/Done)
-- Campos custom: Day, Priority, Estimation
-- Hook automático que registra cada prompt y su versión mejorada
-
-**Comentarios para el presentador:** "Las tareas del spec se convirtieron directamente en issues de GitHub con un comando. El Project Board da visibilidad del progreso sin esfuerzo manual. Y el hook de insights documenta automáticamente mi proceso de comunicación con el agente."  
-**Propuesta de diseño:** Split screen: Kiro IDE a la izquierda, GitHub Project Board Kanban a la derecha. Overlay mostrando el flujo: spec → issues → board.
+**Speaker notes:** The original project plan targeted a five-day hackathon build. This slide presents the scope rather than asserting a measured development duration or unverified judging weights. The deliverable combines point-of-sale operations, AI questions and a bilingual interface. Deployment is still pending.
 
 ---
 
-## Diapositiva 11: Multiplataforma — Kiro Desktop, Web y Mobile
+## Slide 5: Project selection criteria
 
-**Título:** Desarrollo continuo desde cualquier dispositivo  
-**Descripción:**
-- **Kiro Desktop (VS Code):** Desarrollo principal con terminal, debugging, extensiones
-- **Kiro Web (app.kiro.dev):** Acceso desde cualquier navegador, mismo workspace
-- **Kiro Mobile:** Revisión de código, aprobación de PRs, consulta rápida desde el celular
-- **Sync Files:** Sincronización bidireccional entre todos los entornos
-- Flujo real: escribí código en desktop, revisé issues en mobile, continué en web desde otro PC
+**On-slide copy:**
 
-**Comentarios para el presentador:** "No estuve amarrado a una sola máquina. Pude avanzar desde el café con la web, revisar desde el teléfono, y retomar en el desktop sin perder nada."  
-**Propuesta de diseño:** 3 dispositivos (laptop, browser, phone) conectados por flechas de sync. Screenshots reales de cada uno.
+- 04 · DECISION
+- Why this MVP?
+- A concrete business workflow with a focused AI use case.
+- CRITERION
+- Feasibility
+- Scope
+- Focused
+- Stack
+- Go + HTMX
+- CRITERION
+- Business value
+- Users
+- Small shops
+- Workflow
+- Sales
+- SELECTED
+- POS AI-First
+- Data
+- Sales
+- Feature
+- AI chat
+- Small business + NL-to-SQL
+- Project analysis defines the scope and the reason for choosing this MVP.
 
----
-
-## Diapositiva 12: Arquitectura técnica
-
-**Título:** Arquitectura: Hexagonal + AI Layer  
-**Descripción:**
-```
-┌─────────────────────────────────┐
-│  HTMX + Alpine.js + Tailwind   │
-├─────────────────────────────────┤
-│  Go HTTP (chi router)           │
-├─────────────────────────────────┤
-│  Application (use-cases)        │
-├─────────────────────────────────┤
-│  Domain (entities + ports)      │
-├─────────────────────────────────┤
-│  SQLite │ OpenRouter │ Config   │
-└─────────────────────────────────┘
-```
-
-**Comentarios para el presentador:** "Las dependencias siempre apuntan hacia adentro. El dominio no sabe que existe HTTP ni SQLite."  
-**Propuesta de diseño:** Diagrama de capas con colores por nivel y flechas de dependencia.
+**Speaker notes:** The previous material describes evaluating several ideas. This slide preserves the decision story without presenting fictional Idea A and Idea B ratings. A manageable scope and a useful question over sales data explain the POS choice.
 
 ---
 
-## Diapositiva 13: Seguridad NL→SQL (5 capas)
+## Slide 6: Research before implementation
 
-**Título:** 5 capas de seguridad para queries generadas por AI  
-**Descripción:**
-1. Prompt: instrucción al LLM de no generar DDL/DML
-2. Validación Go: whitelist SELECT/WITH, reject keywords peligrosos
-3. Conexión: SQLite read-only separada
-4. Ejecución: timeout 5s, LIMIT 500
-5. Auditoría: log de toda query generada
+**On-slide copy:**
 
-**Comentarios para el presentador:** "No confiamos en el LLM. Cada capa es un guardia independiente. Si una falla, las demás atrapan el problema."  
-**Propuesta de diseño:** 5 escudos/capas apilados con nombres. Color rojo→verde de más riesgoso a más seguro.
+- 05 · DISCOVERY
+- Research before implementation
+- Understanding the problem helps define a manageable MVP.
+- 01
+- Review
+- Existing POS workflows
+- 02
+- Analysis
+- Potential differentiators
+- 03
+- Constitution
+- Scope and exclusions
+- 04
+- Questions
+- Data model and security
+- FOUNDATIONS BEFORE IMPLEMENTATION
 
----
-
-## Diapositiva 14: Nuevas funcionalidades — UI Fixes y Admin Config
-
-**Título:** Iteración 2: Gestión de Clientes + Configuración Admin  
-**Descripción:**
-- **Logout visible:** Botón "Cerrar Sesión" en el sidebar footer para todos los usuarios
-- **Nuevo Producto:** Botón directo en la lista de productos para crear rápido
-- **CRUD Clientes:** Listado, creación con validación de nombre, tabla con datos de contacto
-- **Admin Config:** Página exclusiva para admins — almacena API key cifrada con AES-GCM
-- **HTMX No-Cache:** Middleware que garantiza datos frescos en cada navegación
-- **Sidebar inteligente:** "Configuración" solo visible para rol admin (template conditional)
-
-**Flujo técnico de seguridad (API Key):**
-```
-Admin → Form → AES-GCM Encrypt (SHA-256 de SESSION_SECRET) → SQLite configuracion → Decrypt on read → Mask (****últimos4)
-```
-
-**Comentarios para el presentador:** "Esto se construyó con el spec workflow de Kiro: requirements → design → tasks → ejecución paralela por waves. 30 tareas, 5 waves, resolviendo dependencias automáticamente."  
-**Propuesta de diseño:** Split: izquierda sidebar con las nuevas opciones, derecha el formulario de config con la key enmascarada.
+**Speaker notes:** The project began with analysis and scope decisions. The useful questions concerned the sales data model, the dashboard and the risk of executing generated SQL. Keep the walkthrough grounded in the analysis files you can actually show.
 
 ---
 
-## Diapositiva 15: Demo en vivo
+## Slide 7: Kiro development workflow
 
-**Título:** Demo: Pregúntale a tu POS  
-**Descripción:**
-- Login con PIN
-- CRUD de productos (con botón "Nuevo Producto")
-- Gestión de clientes (crear, listar)
-- Registrar una venta
-- Preguntar: "¿Qué vendí hoy?"
-- Dashboard con métricas actualizándose
-- Admin: configurar API key cifrada
+**On-slide copy:**
 
-**Comentarios para el presentador:** Preparar la demo con datos seeded. Mostrar el flujo completo: login → clientes → venta → chat AI → config admin. Tener backup en video por si falla la red.  
-**Propuesta de diseño:** Pantalla completa del POS funcionando, sin slides — es la demo real.
+- 06 · KIRO
+- Kiro development workflow
+- S
+- Specs
+- Requirements, design, tasks
+- R
+- Steering
+- Persistent project rules
+- P
+- Powers
+- Memory and context
+- H
+- Hooks
+- Workflow automation
+- Task dependencies guide the implementation order
 
----
-
-## Diapositiva 16: Resultados y métricas
-
-**Título:** Lo que logramos en 5 días  
-**Descripción:**
-- 3 specs creados (pos-ai-first, ui-fixes, aws-deploy)
-- 100+ tareas ejecutadas en waves paralelas (5 simultáneas)
-- 5 capas de seguridad NL→SQL
-- Arquitectura hexagonal: dominio INTACTO al migrar a AWS
-- Tests en dominio: 100%, application: 60%+, middleware: 86%
-- Zero lint warnings
-- Chat AI funcional con respuestas en español
-- CRUD completo: Productos, Ventas, Clientes
-- Panel admin con cifrado AES-GCM
-- Deploy a AWS Lambda: $0/mes con free tier
-- Cold start: 4.4s → warm: 1-3ms
-- CI/CD: push a main → auto-deploy en ~4 min
-- 7 adaptadores PostgreSQL + Bedrock adapter (mismas interfaces)
-
-**Comentarios para el presentador:** "100+ tareas, 3 specs, deploy a AWS — todo sin salir de Kiro. El agente ejecutó 5 tareas en paralelo respetando dependencias. El deploy fue automático: push → tests → build → deploy → health check."  
-**Propuesta de diseño:** Grid de métricas con números grandes. Highlight en $0/mes y en 1-3ms warm.
+**Speaker notes:** Specs clarify requirements before implementation. Steering captures recurring project rules. Powers and hooks support context and workflow automation. Dependency planning helps identify work that can proceed independently. These are development aids, not proof that every task executed without conflicts.
 
 ---
 
-## Diapositiva 17: Lecciones aprendidas
+## Slide 8: Persistent project rules
 
-**Título:** Lo que aprendí  
-**Descripción:**
-- Kiro + steering files = consistencia sin esfuerzo
-- LTM power = no perder contexto entre sesiones
-- Spec workflow = no empezar a codear sin plan
-- Wave-based task execution = máxima eficiencia con dependencias respetadas
-- NL→SQL requiere múltiples capas de defensa, no solo prompt engineering
-- HTMX simplifica drásticamente el frontend para MVPs
-- AES-GCM + SESSION_SECRET = secretos protegidos sin servicios externos
-- Property tests validan correctitud universal (no solo happy paths)
+**On-slide copy:**
 
-**Comentarios para el presentador:** Sé honesto sobre qué fue difícil y qué sorprendió. "La ejecución paralela por waves fue reveladora — 5 agentes trabajando al mismo tiempo sin pisarse."  
-**Propuesta de diseño:** Post-its o cards con cada lección, estilo retrospectiva.
+- 07 · STEERING
+- Consistent project rules across sessions
+- architecture.md
+- Lightweight hexagonal architecture
+- testing.md
+- TDD for critical behavior
+- security.md
+- SQL allowlist, bcrypt, read-only
+- quality.md
+- Lint and error handling
+- project-conventions.md
+- Stack, dependencies and commits
+- design-patterns.md
+- Practical patterns, limited abstraction
+- Steering records the rules that guide each development session.
 
----
-
-## Diapositiva 18: Deploy en AWS — Ya implementado
-
-**Título:** De MVP local a producción en AWS — El código ya está  
-**Descripción:**
-
-**Arquitectura implementada:**
-```
-Browser → CloudFront (static/) → S3
-       → API Gateway HTTP API → Lambda (Go ARM64, 512MB)
-                                  ├── RDS PostgreSQL (pgxpool)
-                                  ├── Bedrock Claude 3 Haiku
-                                  └── Secrets Manager (cache)
-```
-
-**Herramientas y flujo de deploy:**
-| Herramienta | Rol en el pipeline |
-|-------------|-------------------|
-| **AWS SAM** | IaC — define Lambda, API Gateway, S3, CloudFront, IAM en un template.yaml |
-| **GitHub Actions** | CI/CD — test → build imagen → push ECR → sam deploy → health check |
-| **Docker (ARM64)** | Container image Lambda — Go binary 15MB + templates |
-| **pgx/v5** | Driver PostgreSQL pure-Go (sin CGO) con connection pool optimizado |
-| **algnhsa** | Adaptador chi router → Lambda event handler (zero-change en handlers) |
-| **Secrets Manager** | Credenciales cifradas con cache in-memory (warm starts) |
-
-**Dual-mode bootstrap:**
-```go
-switch cfg.AppEnv {
-case "lambda":  // PostgreSQL + Bedrock + pgx sessions
-default:        // SQLite + OpenRouter + SQLite sessions
-}
-```
-
-**Archivos creados:** 35 archivos nuevos, 5243 líneas. Dominio intacto.
-
-**Comentarios para el presentador:** "Todo el código de deploy ya está escrito. La arquitectura hexagonal permitió agregar 7 adaptadores PostgreSQL sin tocar una sola línea del dominio. Mañana solo falta crear la infra en AWS y dar `sam deploy`."  
-**Propuesta de diseño:** Diagrama de flujo del pipeline: código → GitHub Actions → ECR → Lambda → API Gateway. Highlight del dual-mode switch.
+**Speaker notes:** The project steering files cover architecture, testing, security, quality, conventions and design patterns. They guide implementation and reduce repeated explanations. Rules are intentions and still need enforcement. Current lint findings remain, so the deck does not claim a clean lint run.
 
 ---
 
-## Diapositiva 19: El poder de la arquitectura hexagonal
+## Slide 9: Long-Term Memory
 
-**Título:** Hexagonal en acción: migración sin dolor  
-**Descripción:**
+**On-slide copy:**
 
-**Lo que NO cambió (cero líneas):**
-- `src/domain/` — Entidades, validaciones, puertos
-- `src/application/` — Use cases, NL→SQL service
-- `templates/` — Todo el frontend HTMX
+- 08 · POWER
+- Long-Term Memory across sessions
+- TIER 1
+- Recent files
+- Quick recall
+- TIER 2
+- Decisions
+- Focused search
+- TIER 3
+- Full detail
+- Deeper context
+- “Pick up where we left off.”
+- Local memory for decisions and unfinished work
 
-**Lo que se AGREGÓ (solo adaptadores nuevos):**
-| Adaptador | Implementa | Driver |
-|-----------|------------|--------|
-| `postgres_product_repository.go` | `ports.ProductRepository` | pgxpool |
-| `postgres_sale_repository.go` | `ports.SaleRepository` | pgxpool + tx |
-| `postgres_user_repository.go` | `ports.UserRepository` | pgxpool |
-| `postgres_client_repository.go` | `ports.ClientRepository` | pgxpool |
-| `postgres_inventory_repository.go` | `ports.InventoryRepository` | pgxpool |
-| `postgres_config_repository.go` | `ports.ConfigRepository` | pgxpool |
-| `postgres_metrics_repository.go` | `ports.MetricsRepository` | pgxpool |
-| `bedrock_query_service.go` | `ports.AIQueryService` | AWS SDK v2 |
-
-**Resultado:** Misma interfaz, distinta implementación. El use case `RegisterSale` no sabe si persiste en SQLite o PostgreSQL.
-
-**Comentarios para el presentador:** "Esta es la demostración práctica de por qué la arquitectura hexagonal importa. 7 adaptadores nuevos, zero cambios en lógica de negocio. El dominio es inmutable."  
-**Propuesta de diseño:** Diagrama hexagonal con el dominio en el centro (candado) y flechas de los adaptadores nuevos apuntando hacia adentro.
+**Speaker notes:** The earlier Kiro workflow used local long-term memory to retain decisions and checkpoints. Start with recent context, search for relevant decisions when necessary and retrieve the full detail before resuming. Memory supports continuity but does not replace checking the current code.
 
 ---
 
-## Diapositiva 20: Costo y timeline
+## Slide 10: Delivery tracking
 
-**Título:** $0/mes — Free Tier cubre todo  
-**Descripción:**
+**On-slide copy:**
 
-| Servicio | Free Tier | Costo post-free |
-|----------|-----------|-----------------|
-| Lambda | 1M req/mes GRATIS (always free) | ~$0.20/1M req |
-| RDS PostgreSQL | 12 meses gratis (t4g.micro) | ~$13/mes |
-| Bedrock Claude Haiku | $200 créditos (~100 meses) | ~$2/mes |
-| S3 + CloudFront | 5GB + 1TB gratis | ~$1/mes |
-| Secrets Manager | 4 secrets | ~$1.60/mes |
-| **Total primer año** | | **$0 efectivo** |
+- 09 · DELIVERY
+- Specs and delivery tracking
+- 01
+- SPEC
+- tasks.md
+- 02
+- ISSUES
+- Work items
+- 03
+- BOARD
+- Kanban V2
+- 04
+- INSIGHTS
+- Prompts and lessons
+- TASKS
+- Implementation steps
+- GOAL
+- Shared milestone
+- BOARD
+- Progress tracking
 
-**Timeline de deploy (restante):**
-1. Crear VPC + RDS + Secrets (Kiro automatiza) — 30 min
-2. Build Docker + push ECR — 5 min  
-3. `sam deploy` — 5 min
-4. Habilitar Bedrock (manual, consola) — 5 min
-5. Health check + test E2E — 5 min
-
-**Comentarios para el presentador:** "El código ya está hecho. Solo falta dar 'sam deploy' y la app vive en la nube. $0/mes el primer año gracias al free tier."  
-**Propuesta de diseño:** Tabla de costos grande con $0 resaltado. Timeline horizontal con checkmarks.
-
----
-
-## Diapositiva 21: Próximos pasos
-
-**Título:** Hacia dónde va el proyecto  
-**Descripción:**
-- **Mañana:** Deploy a AWS (`sam deploy`) — la app vive en la nube
-- **Semana 1:** Seed de datos en RDS, Bedrock habilitado, demo cloud
-- **Futuro:**
-  - Historial de conversación AI
-  - Soporte multi-sucursal
-  - Modo offline con sync
-  - Analytics con dashboards personalizables
-  - Predicción de demanda (Bedrock + datos históricos)
-
-**Comentarios para el presentador:** "El MVP demuestra el concepto. La migración a producción es literalmente un comando. Hexagonal + Kiro specs = velocidad sin sacrificar calidad."  
-**Propuesta de diseño:** Roadmap con 3 fases: MVP Local (✅) → AWS Deploy (🔄 mañana) → AI Advanced (📋).
+**Speaker notes:** The project narrative connects spec tasks with issue tracking and a board. Demonstrate the actual artifacts available for the recording rather than claiming a particular issue count or an automatically synchronized remote board. No new remote operations are part of this update.
 
 ---
 
-## Diapositiva 22: Cierre
+## Slide 11: Cross-device project access
 
-**Título:** Gracias — ¿Preguntas?  
-**Descripción:** Links al repo, QR code, contacto.  
-**Comentarios para el presentador:** Abre a preguntas. Ten preparadas respuestas para: "¿Por qué no usaste un ORM?", "¿Es seguro ejecutar SQL generado por AI?", "¿Por qué SQLite y no Postgres?", "¿Qué Powers de Kiro usaste?", "¿Cuánto cuesta correr esto en AWS?", "¿Cómo funciona el dual-mode bootstrap?"  
-**Propuesta de diseño:** QR al repo + información de contacto sobre fondo limpio.
+**On-slide copy:**
+
+- 10 · PROJECT ACCESS
+- Development and review across devices
+- D
+- DESKTOP
+- Build locally
+- W
+- WEB
+- Read project files
+- M
+- MOBILE
+- Review issues
+- GIT AND SHARED PROJECT ARTIFACTS
+
+**Speaker notes:** Local development, browser access to repository artifacts and mobile issue review are different activities. Git and shared documentation support continuity. This slide does not claim an official Kiro mobile application or automatic synchronization of every environment.
+
+---
+
+## Slide 12: Hexagonal architecture and AI layer
+
+**On-slide copy:**
+
+- 11 · ARCHITECTURE
+- Hexagonal architecture and AI layer
+- Dependencies point toward the domain.
+- HTMX + Alpine.js + Tailwind
+- Go HTTP and chi router
+- Application use cases
+- Domain entities and ports
+- SQLite, OpenRouter and config
+- DOMAIN
+
+**Speaker notes:** The domain defines business entities and ports. Application services coordinate use cases, and infrastructure provides HTTP, persistence and AI adapters. The architecture separates business decisions from a particular database or hosting provider.
+
+---
+
+## Slide 13: NL-to-SQL safeguards
+
+**On-slide copy:**
+
+- 12 · SECURITY
+- Five safeguards for AI-generated queries
+- Validation and execution controls support defense in depth.
+- 1
+- PROMPT
+- No DDL / DML
+- 2
+- VALIDATION
+- SELECT / WITH
+- 3
+- CONNECTION
+- Read-only
+- 4
+- EXECUTION
+- Timeout and row cap
+- 5
+- AUDIT
+- Query records
+- GENERATED SQL STILL NEEDS VALIDATION
+
+**Speaker notes:** The pipeline uses prompt restrictions, a Go validator, a read-only query connection, bounded execution and query audit records. Prompt instructions alone cannot guarantee safety. These controls reduce risk, and the application still needs operational monitoring and verification in its deployed environment.
+
+---
+
+## Slide 14: Customer management and admin settings
+
+**On-slide copy:**
+
+- 13 · ITERATION
+- Customer management and protected admin settings
+- Customers
+- CRUD and validation
+- Admin
+- Encrypted API key
+- Navigation
+- HTMX no-cache
+- Roles
+- Role-aware sidebar
+- ADMIN
+- FORM
+- AES-GCM
+- SQLITE
+- MASK ••••1234
+- SHA-256 of SESSION_SECRET, decrypt on read
+- ENGLISH DEFAULT · SPANISH AVAILABLE
+
+**Speaker notes:** Customer forms validate inputs. Admin settings restrict API-key configuration by role and protect stored values with AES-GCM. The key derivation uses SESSION_SECRET, so a strong secret remains essential. The bilingual switch changes display text without translating stored business data or payment identifiers.
+
+---
+
+## Slide 15: Point-of-sale demo
+
+**On-slide copy:**
+
+- 14 · DEMO
+- Questions for your POS
+- A working application flow.
+- 01
+- PIN login
+- 02
+- Create a product
+- 03
+- Register a customer
+- 04
+- Record a sale
+- 05
+- What did I sell today?
+- 06
+- Dashboard + Admin
+- DEMO
+- What did I sell today?
+- $12,480
+- 37 example sales
+- Prepare a recorded backup
+
+**Speaker notes:** Start in English, briefly switch to Spanish and return to English. Show products, a customer, a sale and dashboard metrics. Ask a question using the available AI configuration. Prepare a recorded backup before the event. The slide contains example figures and does not claim the recording already exists.
+
+---
+
+## Slide 16: Current implementation results
+
+**On-slide copy:**
+
+- 15 · RESULTS
+- A working MVP with local verification
+- EN / ES
+- UI languages
+- GO
+- Backend
+- 5
+- SQL safeguards
+- CRUD
+- POS workflows
+- AES
+- Key protection
+- PASS
+- Local tests
+- 7
+- PG repositories
+- NEXT
+- Render deploy
+- AI chat, product and customer management, sales, encrypted settings
+
+**Speaker notes:** Local app tests and the build pass. English is the default UI language and Spanish remains available. PostgreSQL repositories and AWS integration code also exist. The lint run still reports twelve existing findings. External AI output, hosted behavior and deployment are not verified by those local checks.
+
+---
+
+## Slide 17: Lessons learned
+
+**On-slide copy:**
+
+- 16 · LESSONS
+- Strong foundations support reliable progress
+- Steering
+- Consistency
+- LTM
+- Continuity
+- Specs
+- Scope before code
+- Waves
+- Dependency planning
+- NL→SQL
+- Defense in depth
+- HTMX
+- Simple frontend
+- AES-GCM
+- Protected secrets
+- Property tests
+- Broader input coverage
+- People direct the work. AI supports execution.
+
+**Speaker notes:** Steering and memory help maintain context. Specs clarify intent, and dependency planning supports coordination. Generated SQL needs independent safeguards. Property tests explore more inputs than a few examples, but they do not prove universal correctness.
+
+---
+
+## Slide 18: Existing AWS integration code
+
+**On-slide copy:**
+
+- 17 · AWS OPTION
+- Existing AWS integration code
+- BROWSER
+- S3 + CloudFront
+- API
+- API Gateway
+- COMPUTE
+- Lambda Go ARM64
+- DATA
+- RDS PostgreSQL
+- AI
+- Bedrock Haiku
+- SECRETS
+- Secrets Manager
+- switch cfg.AppEnv {
+- case "lambda": PostgreSQL + Bedrock
+- default: SQLite + OpenRouter
+- ALTERNATIVE HOSTING PATH · DEPLOYMENT NOT VERIFIED
+
+**Speaker notes:** The repository includes an AWS deployment path using Lambda, PostgreSQL and Bedrock, with infrastructure definitions. The diagram describes that implementation path, not a verified running production environment. The current next deployment target is Render, not an AWS rollout.
+
+---
+
+## Slide 19: Interchangeable infrastructure adapters
+
+**On-slide copy:**
+
+- 18 · HEXAGONAL
+- Interchangeable infrastructure adapters
+- Shared ports, different implementations.
+- BUSINESS LAYERS
+- Domain and application
+- src/domain/
+- src/application/
+- templates/
+- ADAPTERS
+- Infrastructure implementations
+- Product
+- Sale
+- User
+- Client
+- Inventory
+- Config
+- Metrics
+- Bedrock AI
+- RegisterSale works through repository ports, independent of the database.
+
+**Speaker notes:** Repository ports allow SQLite and PostgreSQL implementations to serve the same business use cases. The earlier zero-lines-changed migration claim needs historical diff evidence, so this slide explains the separation without asserting that application or templates never changed. The current language work explicitly changes both.
+
+---
+
+## Slide 20: Render deployment preparation
+
+**On-slide copy:**
+
+- 19 · DEPLOYMENT
+- Render deployment preparation
+- Free-plan deployment is the target. Setup and validation remain pending.
+- NEXT
+- Render setup
+- DATA
+- Storage decision
+- CHECK
+- Hosted behavior
+- Runtime
+- Go service
+- Build and start
+- Database
+- Persistence plan
+- Confirm durability
+- AI provider
+- API credentials
+- Validate response
+- Configuration
+- Strong secrets
+- Set environment
+- Verification
+- Login and sales
+- Health check
+
+**Speaker notes:** Render free-plan deployment is a requested next step, not a completed result. Confirm the supported runtime, database persistence approach, environment variables and credentials before deployment. Validate login, language switching, a sale, health and AI responses on the hosted service. This deck makes no pricing, persistent-disk or deployment-duration promise.
+
+---
+
+## Slide 21: Next steps
+
+**On-slide copy:**
+
+- 20 · ROADMAP
+- Next steps after the local MVP
+- NOW
+- LOCAL MVP
+- EN / ES
+- NEXT
+- RENDER SETUP
+- Persistence plan
+- THEN
+- HOSTED DEMO
+- Verify live flows
+- LATER
+- AI FEATURES
+- Forecasting and branches
+- VERIFIED STEPS BEFORE A LIVE DEMO
+
+**Speaker notes:** Complete Render preparation, resolve durable storage and configure secrets. Then deploy within an explicitly authorized remote scope and verify the hosted demo. Conversation history, multiple branches, offline synchronization and forecasting remain future ideas, not implemented features.
+
+---
+
+## Slide 22: Thank you
+
+**On-slide copy:**
+
+- código facilito
+- ×
+- kiro
+- Thank you
+- Questions?
+- POS AI-First MVP
+- Hackathon 2026
+
+**Speaker notes:** Thank you. I am Gabriel Magallon Sanchez. Questions can cover the POS workflow, bilingual UI, SQL safeguards, adapter boundaries and the remaining Render deployment work.
+
+---
