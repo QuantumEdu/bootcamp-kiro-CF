@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 	mw "github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/http/middleware"
 )
 
 // WithUserContext enriches template data with user information from the request context.
-// It adds UserName, UserRole, and UserInitial fields used by layout.html sidebar.
+// It adds UserName, UserRole, UserInitial, Lang, and T (translation func) used by layout.html.
 func WithUserContext(r *http.Request, data map[string]interface{}) map[string]interface{} {
 	userName, _ := r.Context().Value(mw.ContextKeyUserName).(string)
 	userRole, _ := r.Context().Value(mw.ContextKeyUserRole).(string)
@@ -19,9 +20,13 @@ func WithUserContext(r *http.Request, data map[string]interface{}) map[string]in
 		initial = string([]rune(userName)[:1])
 	}
 
+	tr := i18n.FromRequest(r)
+
 	data["UserName"] = userName
 	data["UserRole"] = userRole
 	data["UserInitial"] = initial
+	data["Lang"] = tr.Lang()
+	data["T"] = tr.Func()
 	return data
 }
 

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+
+	"github.com/QuantumEdu/bootcamp-kiro-CF/src/infrastructure/i18n"
 )
 
 // MetricsHandler handles metric fragment rendering for HTMX polling.
@@ -22,6 +24,11 @@ func NewMetricsHandlerPG(db *sql.DB) *MetricsHandler {
 	return &MetricsHandler{db: db, isPostgres: true}
 }
 
+// tr resolves a translation key from the request language cookie.
+func tr(r *http.Request, key string) string {
+	return i18n.FromRequest(r).Translate(key)
+}
+
 // VentasHoy returns today's sales summary.
 func (h *MetricsHandler) VentasHoy(w http.ResponseWriter, r *http.Request) {
 	var count int
@@ -32,7 +39,8 @@ func (h *MetricsHandler) VentasHoy(w http.ResponseWriter, r *http.Request) {
 	}
 	h.db.QueryRow(q).Scan(&count, &total)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">Ventas hoy</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d transacciones</p>`, fmtMoney(total), count)
+	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">%s</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d %s</p>`,
+		tr(r, "metrics.sales_today"), fmtMoney(total), count, tr(r, "metrics.transactions"))
 }
 
 // VentasSemana returns this week's sales.
@@ -45,7 +53,8 @@ func (h *MetricsHandler) VentasSemana(w http.ResponseWriter, r *http.Request) {
 	}
 	h.db.QueryRow(q).Scan(&count, &total)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">Ventas semana</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d transacciones (7 dias)</p>`, fmtMoney(total), count)
+	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">%s</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d %s</p>`,
+		tr(r, "metrics.sales_week"), fmtMoney(total), count, tr(r, "metrics.transactions_7d"))
 }
 
 // VentasMes returns this month's sales.
@@ -58,7 +67,8 @@ func (h *MetricsHandler) VentasMes(w http.ResponseWriter, r *http.Request) {
 	}
 	h.db.QueryRow(q).Scan(&count, &total)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">Ventas mes</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d transacciones</p>`, fmtMoney(total), count)
+	fmt.Fprintf(w, `<p class="text-sm font-medium text-gray-500">%s</p><p class="text-2xl font-bold text-gray-900 mt-1">$%s</p><p class="text-xs text-gray-400 mt-1">%d %s</p>`,
+		tr(r, "metrics.sales_month"), fmtMoney(total), count, tr(r, "metrics.transactions"))
 }
 
 // TopProductos returns top 5 selling products.
@@ -79,12 +89,12 @@ func (h *MetricsHandler) TopProductos(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := h.db.Query(q)
 	if err != nil {
-		renderErr(w, "Error cargando top productos")
+		renderErr(w, tr(r, "metrics.error_loading"))
 		return
 	}
 	defer rows.Close()
 
-	html := `<p class="text-sm font-medium text-gray-500 mb-3">Top 5 productos (30 dias)</p><div class="space-y-2">`
+	html := fmt.Sprintf(`<p class="text-sm font-medium text-gray-500 mb-3">%s</p><div class="space-y-2">`, tr(r, "metrics.top_products"))
 	rank := 1
 	found := false
 	for rows.Next() {
@@ -92,11 +102,11 @@ func (h *MetricsHandler) TopProductos(w http.ResponseWriter, r *http.Request) {
 		var nombre string
 		var unidades float64
 		rows.Scan(&nombre, &unidades)
-		html += fmt.Sprintf(`<div class="flex items-center justify-between text-sm"><div class="flex items-center gap-2"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-xs flex items-center justify-center font-bold">%d</span><span class="text-gray-700">%s</span></div><span class="text-gray-500">%.0f uds</span></div>`, rank, nombre, unidades)
+		html += fmt.Sprintf(`<div class="flex items-center justify-between text-sm"><div class="flex items-center gap-2"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-xs flex items-center justify-center font-bold">%d</span><span class="text-gray-700">%s</span></div><span class="text-gray-500">%.0f %s</span></div>`, rank, nombre, unidades, tr(r, "metrics.units"))
 		rank++
 	}
 	if !found {
-		html += `<p class="text-sm text-gray-400 text-center py-4">Sin ventas recientes</p>`
+		html += fmt.Sprintf(`<p class="text-sm text-gray-400 text-center py-4">%s</p>`, tr(r, "metrics.no_recent_sales"))
 	}
 	html += `</div>`
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -111,12 +121,12 @@ func (h *MetricsHandler) StockBajo(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := h.db.Query(q)
 	if err != nil {
-		renderErr(w, "Error cargando stock bajo")
+		renderErr(w, tr(r, "metrics.error_loading"))
 		return
 	}
 	defer rows.Close()
 
-	html := `<p class="text-sm font-medium text-gray-500 mb-3">Stock bajo</p>`
+	html := fmt.Sprintf(`<p class="text-sm font-medium text-gray-500 mb-3">%s</p>`, tr(r, "metrics.low_stock"))
 	found := false
 	for rows.Next() {
 		found = true
@@ -132,7 +142,7 @@ func (h *MetricsHandler) StockBajo(w http.ResponseWriter, r *http.Request) {
 		html += fmt.Sprintf(`<div class="flex items-center justify-between text-sm py-1"><span class="%s">%s %s</span><span class="%s font-medium">%.0f / %.0f</span></div>`, color, icon, nombre, color, stockActual, stockMinimo)
 	}
 	if !found {
-		html += `<div class="text-sm text-green-600 py-4 text-center">✅ Todo en orden</div>`
+		html += fmt.Sprintf(`<div class="text-sm text-green-600 py-4 text-center">✅ %s</div>`, tr(r, "metrics.stock_ok"))
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)
@@ -154,12 +164,12 @@ func (h *MetricsHandler) ClientesFrecuentes(w http.ResponseWriter, r *http.Reque
 	}
 	rows, err := h.db.Query(q)
 	if err != nil {
-		renderErr(w, "Error cargando clientes")
+		renderErr(w, tr(r, "metrics.error_loading"))
 		return
 	}
 	defer rows.Close()
 
-	html := `<p class="text-sm font-medium text-gray-500 mb-3">Clientes frecuentes (30d)</p><div class="space-y-2">`
+	html := fmt.Sprintf(`<p class="text-sm font-medium text-gray-500 mb-3">%s</p><div class="space-y-2">`, tr(r, "metrics.frequent_clients"))
 	found := false
 	for rows.Next() {
 		found = true
@@ -167,10 +177,10 @@ func (h *MetricsHandler) ClientesFrecuentes(w http.ResponseWriter, r *http.Reque
 		var compras int
 		var total float64
 		rows.Scan(&nombre, &compras, &total)
-		html += fmt.Sprintf(`<div class="flex items-center justify-between text-sm"><span class="text-gray-700">%s</span><span class="text-gray-500">%d compras · $%s</span></div>`, nombre, compras, fmtMoney(total))
+		html += fmt.Sprintf(`<div class="flex items-center justify-between text-sm"><span class="text-gray-700">%s</span><span class="text-gray-500">%d %s · $%s</span></div>`, nombre, compras, tr(r, "metrics.purchases"), fmtMoney(total))
 	}
 	if !found {
-		html += `<p class="text-sm text-gray-400 text-center py-4">Sin datos</p>`
+		html += fmt.Sprintf(`<p class="text-sm text-gray-400 text-center py-4">%s</p>`, tr(r, "metrics.no_data"))
 	}
 	html += `</div>`
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -191,12 +201,12 @@ func (h *MetricsHandler) MargenCategoria(w http.ResponseWriter, r *http.Request)
 	}
 	rows, err := h.db.Query(q)
 	if err != nil {
-		renderErr(w, "Error cargando margenes")
+		renderErr(w, tr(r, "metrics.error_loading"))
 		return
 	}
 	defer rows.Close()
 
-	html := `<p class="text-sm font-medium text-gray-500 mb-3">Margen por categoria</p><div class="space-y-2">`
+	html := fmt.Sprintf(`<p class="text-sm font-medium text-gray-500 mb-3">%s</p><div class="space-y-2">`, tr(r, "metrics.margin_category"))
 	found := false
 	for rows.Next() {
 		found = true
@@ -217,7 +227,7 @@ func (h *MetricsHandler) MargenCategoria(w http.ResponseWriter, r *http.Request)
 		html += fmt.Sprintf(`<div class="text-sm"><div class="flex justify-between mb-1"><span class="text-gray-700">%s <span class="text-gray-400 text-xs">(%d)</span></span><span class="font-medium">%.0f%%</span></div><div class="w-full bg-gray-200 rounded-full h-1.5"><div class="%s h-1.5 rounded-full" style="width:%.0f%%"></div></div></div>`, cat, prods, pct, barColor, bw)
 	}
 	if !found {
-		html += `<p class="text-sm text-gray-400 text-center py-4">Sin datos</p>`
+		html += fmt.Sprintf(`<p class="text-sm text-gray-400 text-center py-4">%s</p>`, tr(r, "metrics.no_data"))
 	}
 	html += `</div>`
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -247,7 +257,7 @@ func (h *MetricsHandler) ProductosHTMX(w http.ResponseWriter, r *http.Request) {
 		html += fmt.Sprintf(`<tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">%s</td><td class="px-4 py-3 text-gray-500">%s</td><td class="px-4 py-3 text-right text-gray-900">$%.2f</td><td class="px-4 py-3 text-right">%.0f</td></tr>`, nombre, sku, precio, stock)
 	}
 	if !found {
-		html = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">No hay productos</td></tr>`
+		html = fmt.Sprintf(`<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">%s</td></tr>`, tr(r, "products.empty"))
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)
@@ -271,9 +281,9 @@ func (h *MetricsHandler) VentasRecientes(w http.ResponseWriter, r *http.Request)
 		var metodo, fecha string
 		rows.Scan(&id, &total, &metodo, &fecha)
 		badge := "bg-green-100 text-green-700"
-		if metodo == "tarjeta" {
+		if metodo == "tarjeta" || metodo == "card" {
 			badge = "bg-blue-100 text-blue-700"
-		} else if metodo == "transferencia" {
+		} else if metodo == "transferencia" || metodo == "transfer" {
 			badge = "bg-purple-100 text-purple-700"
 		}
 		display := fecha
@@ -283,7 +293,7 @@ func (h *MetricsHandler) VentasRecientes(w http.ResponseWriter, r *http.Request)
 		html += fmt.Sprintf(`<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"><div><span class="font-medium text-gray-800">#%d</span><span class="text-gray-500 ml-2">%s</span></div><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded text-xs %s">%s</span><span class="font-bold text-gray-900">$%.2f</span></div></div>`, id, display, badge, metodo, total)
 	}
 	if !found {
-		html += `<p class="text-sm text-gray-400 text-center py-4">No hay ventas</p>`
+		html += fmt.Sprintf(`<p class="text-sm text-gray-400 text-center py-4">%s</p>`, tr(r, "metrics.no_sales"))
 	}
 	html += `</div>`
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -314,10 +324,10 @@ func (h *MetricsHandler) ProductosBuscar(w http.ResponseWriter, r *http.Request)
 		var nombre string
 		var precio, stock float64
 		rows.Scan(&id, &nombre, &precio, &stock)
-		html += fmt.Sprintf(`<button type="button" onclick="window.dispatchEvent(new CustomEvent('add-to-cart',{detail:{id:%d,nombre:'%s',precio:%.2f}}))" class="w-full flex items-center justify-between p-2 hover:bg-indigo-50 rounded-lg text-left"><div><p class="text-sm font-medium text-gray-800">%s</p><p class="text-xs text-gray-500">Stock: %.0f</p></div><span class="text-sm font-bold text-indigo-600">$%.2f</span></button>`, id, escJS(nombre), precio, nombre, stock, precio)
+		html += fmt.Sprintf(`<button type="button" onclick="window.dispatchEvent(new CustomEvent('add-to-cart',{detail:{id:%d,nombre:'%s',precio:%.2f}}))" class="w-full flex items-center justify-between p-2 hover:bg-indigo-50 rounded-lg text-left"><div><p class="text-sm font-medium text-gray-800">%s</p><p class="text-xs text-gray-500">%s: %.0f</p></div><span class="text-sm font-bold text-indigo-600">$%.2f</span></button>`, id, escJS(nombre), precio, nombre, tr(r, "metrics.stock_label"), stock, precio)
 	}
 	if html == "" {
-		html = `<p class="text-sm text-gray-400 py-2">Sin resultados</p>`
+		html = fmt.Sprintf(`<p class="text-sm text-gray-400 py-2">%s</p>`, tr(r, "metrics.no_results"))
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)

@@ -211,6 +211,7 @@ func BuildRouter(cfg Config) (http.Handler, func(), error) {
 	// Public routes
 	r.Get("/login", authHandler.LoginPage)
 	r.Post("/login", authHandler.Login)
+	r.Post("/lang", handlers.NewLangHandler().Switch)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
