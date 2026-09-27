@@ -1,0 +1,48 @@
+# Dockerfile.render — Web service for Render.com
+# Uses SQLite (local file) + OpenRouter — no PostgreSQL needed
+# Build: docker build -f Dockerfile.render -t pos-ai-first .
+
+FROM golang:1.26-alpine AS builder
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Build the local server binary (not lambda)
+# CGO_ENABLED=0 because we use modernc.org/sqlite (pure Go)
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-s -w" -o /pos-server cmd/server/main.go
+
+# ── Runtime image ──────────────────────────────────────────────────────────────
+FROM alpine:3.19
+WORKDIR /app
+
+# ca-certificates for HTTPS calls to OpenRouter API
+RUN apk add --no-cache ca-certificates tzdata
+
+# Copy binary
+COPY --from=builder /pos-server /app/pos-server
+
+# Copy templates and static assets
+COPY templates/ /app/templates/
+COPY static/ /app/static/
+
+# Copy migrations (server auto-migrates on start)
+COPY migrations/ /app/migrations/
+
+# Render mounts a persistent disk at /data — store SQLite DB there
+RUN mkdir -p /data
+
+# Expose port (Render uses $PORT env var)
+EXPOSE 8080
+
+# Health check for Render
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://localhost:${PORT:-8080}/health || exit 1
+
+CMD ["/app/pos-server"]

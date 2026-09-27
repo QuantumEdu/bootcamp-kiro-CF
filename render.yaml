@@ -1,0 +1,50 @@
+## render.yaml — Render.com Infrastructure as Code
+## Deploy: connect GitHub repo in Render dashboard → auto-detected
+## Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: pos-ai-first
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    region: oregon          # us-west-2 — closest free tier region
+    plan: free              # Free tier: 512MB RAM, spins down after 15min inactivity
+
+    # Render injects PORT automatically — server reads it via getEnvDefault("PORT", "8080")
+    envVars:
+      - key: APP_ENV
+        value: local        # Use SQLite + OpenRouter path in bootstrap
+
+      - key: DATABASE_PATH
+        value: /data/pos.db  # Persistent disk mount point
+
+      - key: SESSION_SECRET
+        generateValue: true  # Render auto-generates a secure random value
+
+      - key: OPENROUTER_API_KEY
+        sync: false          # Set manually in Render dashboard (sensitive)
+
+      - key: OPENROUTER_MODEL
+        value: deepseek/deepseek-chat-v3-0324:free  # Free model for demo
+
+      - key: QUERY_TIMEOUT_SECONDS
+        value: "5"
+
+      - key: PIN_MAX_ATTEMPTS
+        value: "5"
+
+      - key: PIN_LOCKOUT_MINUTES
+        value: "5"
+
+    # Persistent disk — keeps SQLite DB between deploys and restarts
+    # Free plan: 1GB included
+    disk:
+      name: pos-data
+      mountPath: /data
+      sizeGB: 1
+
+    # Auto-deploy on push to main
+    autoDeploy: true
+
+    # Health check — Render uses this to verify the service is up
+    healthCheckPath: /health

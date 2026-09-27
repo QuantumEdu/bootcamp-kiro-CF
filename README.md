@@ -165,10 +165,28 @@ go run cmd/server/main.go
 # → http://localhost:8080
 ```
 
-### AWS (producción)
+### Render (producción actual)
+
+La app corre en Render Free Tier usando SQLite con disco persistente.
+
+**Deploy automático:** push a `main` → Render builds → live en ~2 minutos.
+
+**Primera vez:**
+1. Conectá el repo en [render.com/dashboard](https://render.com/dashboard) → New → Blueprint
+2. Render detecta `render.yaml` automáticamente
+3. En el dashboard, configurá la variable `OPENROUTER_API_KEY` con tu API key
+4. Clic en **Deploy** — el resto es automático
+
+**URL:** asignada por Render al crear el servicio (formato `https://pos-ai-first-xxxx.onrender.com`)
+
+> ⚠️ El free tier se suspende tras 15 minutos de inactividad. El primer request tarda ~30s en despertar.
+
+---
+
+### AWS (referencia histórica)
 
 > ⛔ **Infraestructura desaprovisionada.** La cuenta AWS fue cerrada el 2 de septiembre de 2026.
-> El código de deploy está disponible en `template.yaml` y `.github/workflows/deploy.yml` como referencia.
+> El código de deploy está disponible en `template.yaml` y `.github/workflows/deploy.yml` como referencia de arquitectura Lambda + PostgreSQL + Bedrock.
 
 ---
 

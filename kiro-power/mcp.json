@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "sqlite-pos": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "./data/pos.db"],
+      "disabled": false
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "disabled": false
+    }
+  }
+}
