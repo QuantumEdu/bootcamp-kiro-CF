@@ -73,5 +73,3 @@ for(let i=0;i<22;i++) {
 await fs.writeFile(root+'/presentacion.md',md.join('\n'));
 await fs.writeFile(build+'/provenance.json',JSON.stringify({source,sourceHash,logoURL,logoSha256:hash(logoBytes),programURL:url,retrieved:'2026-09-27',output},null,2));
 console.log(JSON.stringify(result));
-
-
